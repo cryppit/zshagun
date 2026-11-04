@@ -203,3 +203,29 @@ test('page_has_full_preview_tags', async () => {
     assert.ok(html.includes(`"${tag}"`), tag);
   }
 });
+
+test('a_mistake_keeps_the_choice_and_the_number', () => {
+  const choices = [
+    { id: 'a', name: 'Airtel', label: '₹10 recharge', kind: 'recharge', needsPhone: true },
+    { id: 'j', name: 'Jio', label: '2GB', kind: 'recharge', needsPhone: true },
+  ];
+  const html = screen({ screen: 'choosing', tier: 51, choices, picked: 'j', phoneText: '123"45', error: 'Enter a number.' });
+  assert.match(html, /value="j"[^>]*checked/);
+  assert.doesNotMatch(html, /value="a"[^>]*checked/);
+  assert.match(html, /value="123&quot;45"/);
+});
+
+test('first_choice_is_picked_when_nothing_was_chosen_yet', () => {
+  const choices = [{ id: 'a', name: 'A', label: 'x', kind: 'card', needsPhone: false }];
+  assert.match(screen({ screen: 'choosing', tier: 11, choices }), /value="a"[^>]*checked/);
+});
+
+test('a_picked_product_that_left_the_list_falls_back_to_the_first', () => {
+  const choices = [{ id: 'a', name: 'A', label: 'x', kind: 'card', needsPhone: false }];
+  assert.match(screen({ screen: 'choosing', tier: 11, choices, picked: 'gone' }), /value="a"[^>]*checked/);
+});
+
+test('the_error_sits_in_the_dock_above_the_button', () => {
+  const html = screen({ screen: 'choosing', tier: 11, choices: [], error: 'Enter a number.' });
+  assert.match(html, /class="dock"><p class="error"/);
+});

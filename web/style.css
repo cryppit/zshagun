@@ -185,6 +185,7 @@ h1.on-red { color: var(--gold); }
 .tile input:focus-visible + .tile-in { outline: 3px solid var(--sindoor-dark); outline-offset: 2px; }
 .dock { position: sticky; bottom: 0; margin: 8px -6px -8px; padding: 6px 6px 8px; background: linear-gradient(transparent, var(--paper-2) 22%); text-align: center; }
 .dock .fine { margin: 6px 0 0; }
+.dock .error { margin: 0 0 2px; padding-top: 10px; }
 
 /* A ticket with torn edges, for what they got. */
 .ticket {

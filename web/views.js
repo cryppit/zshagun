@@ -32,11 +32,11 @@ const lifafa = (inner = '') => `<div class="lifafa">
 const paper = (body, cls = '') => `${mark}<section class="paper ${cls}">${body}</section>`;
 const notice = (title, text, extra = '', c = 'z') => paper(`${coin(c, 'small-coin')}<h1>${title}</h1><p>${text}</p>${extra}`, 'center');
 
-const tile = (c, i) => `<label class="tile"><input type="radio" name="product" value="${esc(c.id)}" data-phone="${c.needsPhone ? 1 : 0}" ${i === 0 ? 'checked' : ''}>
+const tile = (c, picked) => `<label class="tile"><input type="radio" name="product" value="${esc(c.id)}" data-phone="${c.needsPhone ? 1 : 0}" ${c.id === picked ? 'checked' : ''}>
   <span class="tile-in"><i class="brand b-${esc(String(c.name).toLowerCase().replace(/[^a-z]/g, ''))}" aria-hidden="true">${esc(String(c.name).slice(0, 1))}</i>
   <b>${esc(c.name)}</b><small>${esc(c.label)}</small></span></label>`;
 
-const group = (title, list, offset) => (list.length ? `<h2>${title}</h2><div class="tiles">${list.map((c, i) => tile(c, i + offset)).join('')}</div>` : '');
+const group = (title, list, picked) => (list.length ? `<h2>${title}</h2><div class="tiles">${list.map((c) => tile(c, picked)).join('')}</div>` : '');
 
 const VIEWS = {
   give: ({ tier = 51, error }) => paper(`
@@ -95,21 +95,21 @@ const VIEWS = {
     </section>
   </div>`,
 
-  choosing: ({ tier, choices = [], error }) => {
+  choosing: ({ tier, choices = [], error, picked, phoneText }) => {
     const recharges = choices.filter((c) => c.kind === 'recharge');
     const cards = choices.filter((c) => c.kind !== 'recharge');
+    const chosen = choices.some((c) => c.id === picked) ? picked : [...recharges, ...cards][0]?.id;
     return paper(`
     <p class="kicker">Your gift is ${rupees(tier)}</p>
     <h1>What would you like?</h1>
     <form id="choose">
-      ${group('Phone', recharges, 0)}
-      ${group('Gift cards', cards, recharges.length)}
+      ${group('Phone', recharges, chosen)}
+      ${group('Gift cards', cards, chosen)}
       <label class="field" id="phone-field">Phone number to recharge
-        <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="98765 43210">
+        <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="98765 43210" value="${esc(phoneText)}">
         <span class="fine hint">zshagun and Bitrefill see this number, to do the recharge. zshagun deletes it afterwards.</span>
       </label>
-      ${error ? `<p class="error" role="alert">${esc(error)}</p>` : ''}
-      <div class="dock"><button class="gold" type="submit">Get it</button><p class="fine">You can only choose once.</p></div>
+      <div class="dock">${error ? `<p class="error" role="alert">${esc(error)}</p>` : ''}<button class="gold" type="submit">Get it</button><p class="fine">You can only choose once.</p></div>
     </form>`);
   },
 

@@ -115,6 +115,8 @@ root.addEventListener('submit', async (e) => {
   if (e.target.id === 'choose') {
     const picked = e.target.querySelector('input[name=product]:checked');
     if (!picked) return;
+    // A retry must never quietly change what was chosen: this decides what gets bought.
+    state = { ...state, picked: picked.value, phoneText: form.get('phone') ?? '' };
     let phone = null;
     if (picked.dataset.phone === '1') {
       phone = indianPhone(form.get('phone') ?? '');

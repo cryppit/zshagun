@@ -1,0 +1,45 @@
+Transactions:
+342ab0815cfa4789d47eaf147609607513252615ba23395caa177f78cfaa0ef2
+     Mined: 4580635 (2026-11-04 2:47:43.0 +00:00:00)
+    Amount:   1.00000000 TAZ
+  Fee paid: Unknown
+  Sent 0 notes, received 1 notes, 0 memos
+  Output 0 (Ironwood)
+    Value:   1.00000000 TAZ
+    Received by account: 77a2c0fb-4bd7-4fbd-ac30-33af6d01f738 (payer)
+    To: utest1h30pu0a9dhv84maw06vgxjtr88vzhg58dxhxm06h0ll9agd0kl8p8k3ryt2ptc4zt4d0p09wkqf7hfy5e3lpajfgvvzs7z9r9gc04e2r47ddr424lemh60ds0xmp0pavxeud3rshcl65xfn67z8rerexhmmmtnvgp64gwzhac6edtkzwck4rf7ruum0vfsjvwl80h3c9ctnyjsdg2hw
+16a1757b88a3a78a531207fe606c5ca1d08751301dba6c228b11d42b109d4f73
+     Mined: 4580647 (2026-11-04 2:52:12.0 +00:00:00)
+    Amount:   0.01025000 TAZ
+  Fee paid:   0.00025000 TAZ
+  Sent 1 notes, received 0 notes, 1 memos
+  Output 0 (Ironwood)
+    Value:   0.24743750 TAZ (Change)
+    Memo: Memo::Empty
+  Output 1 (Ironwood)
+    Value:   0.24743750 TAZ (Change)
+    Memo: Memo::Empty
+  Output 2 (Ironwood)
+    Value:   0.24743750 TAZ (Change)
+    Memo: Memo::Empty
+  Output 3 (Ironwood)
+    Value:   0.24743750 TAZ (Change)
+    Memo: Memo::Empty
+  Output 4 (Ironwood)
+    Value:   0.01000000 TAZ
+    Sent from account: 77a2c0fb-4bd7-4fbd-ac30-33af6d01f738 (payer)
+    To: utest14j43elrxtzx6umn9yzu3pp3tphzgl98gc703xzcs6t8sefhgwhaez9jv2szut7j00v0rfl03cjw0uv9dmcq2zqp3cufu7c2n254dffjfa8qcuyl7usvnktap49cyq343zryet5q5g3dz9rfwyz9a6nuxvwnrnjkzl673sjf2pglk9g5a5nszk4pj3z6z0uez37pfekrpda65sljvdfc
+    Memo: Memo::Text("practice")
+a1df76f0716c9318966ea0ff69562c3fcfe255755080e2357718160067c36301
+   Unmined (expiry height: 4580740)
+    Amount:   0.40010000 TAZ
+  Fee paid:   0.00010000 TAZ
+  Sent 1 notes, received 0 notes, 1 memos
+  Output 0 (Ironwood)
+    Value:   0.09477500 TAZ (Change)
+    Memo: Memo::Empty
+  Output 1 (Ironwood)
+    Value:   0.40000000 TAZ
+    Sent from account: 77a2c0fb-4bd7-4fbd-ac30-33af6d01f738 (payer)
+    To: utest14j43elrxtzx6umn9yzu3pp3tphzgl98gc703xzcs6t8sefhgwhaez9jv2szut7j00v0rfl03cjw0uv9dmcq2zqp3cufu7c2n254dffjfa8qcuyl7usvnktap49cyq343zryet5q5g3dz9rfwyz9a6nuxvwnrnjkzl673sjf2pglk9g5a5nszk4pj3z6z0uez37pfekrpda65sljvdfc
+    Memo: Memo::Text("CHK1 test order, a long memo to confirm text round trips")

@@ -176,6 +176,24 @@ test('failed_buy_is_needs_human_and_never_retried', async (t) => {
   assert.equal(n, 1);
 });
 
+test('a_buy_that_returns_nothing_never_crashes_the_agent', async (t) => {
+  const s = await start({ bitrefill: fakeBitrefill({ buy: async () => undefined }) });
+  t.after(s.stop);
+  await s.claim();
+  await s.app.settled();
+  assert.equal((await (await s.status()).json()).state, 'needs_human');
+  assert.equal((await fetch(`${s.base}/health`)).status, 200);
+});
+
+test('a_ledger_failure_after_buying_never_crashes_the_agent', async (t) => {
+  const s = await start({ bitrefill: fakeBitrefill({ waitDelivered: async () => { throw new Error('boom'); } }) });
+  t.after(s.stop);
+  await s.claim();
+  await s.app.settled();
+  assert.equal(s.ledger.get(s.id).state, 'needs_human');
+  assert.equal((await fetch(`${s.base}/health`)).status, 200);
+});
+
 test('undelivered_is_needs_human', async (t) => {
   const s = await start({ bitrefill: fakeBitrefill({ waitDelivered: async () => ({ status: 'needs_human' }) }) });
   t.after(s.stop);

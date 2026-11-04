@@ -89,17 +89,23 @@ export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey
     await tellGiver(id);
   }
 
-  async function fulfil(id, product, phone) {
-    let invoice;
+  // Anything that goes wrong from here on may be after money moved, so it ends in "needs a human", never a crash or a retry.
+  async function guarded(id, step) {
     try {
-      invoice = await bitrefill.buy({ product, phone });
+      await step();
     } catch (e) {
-      ledger.setState(id, 'needs_human', { note: e.message });
-      log(`gift ${short(id)} needs a human: the purchase failed`);
-      return;
+      ledger.setState(id, 'needs_human', { note: String(e.message).slice(0, 200) });
+      log(`gift ${short(id)} needs a human: ${e.code ?? 'the purchase step failed'}`);
     }
-    ledger.setState(id, 'buying', { invoice_id: invoice });
-    await finish(id);
+  }
+
+  async function fulfil(id, product, phone) {
+    await guarded(id, async () => {
+      const invoice = await bitrefill.buy({ product, phone });
+      if (!invoice) throw new Error('no invoice id came back');
+      ledger.setState(id, 'buying', { invoice_id: invoice });
+      await finish(id);
+    });
   }
 
   async function claim(req, send) {
@@ -205,7 +211,7 @@ export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey
         ledger.setState(g.id, 'needs_human', { note: `stopped during ${g.state}` });
         log(`gift ${short(g.id)} needs a human: stopped during ${g.state}`);
       }
-      for (const g of ledger.inState('buying')) track(finish(g.id));
+      for (const g of ledger.inState('buying')) track(guarded(g.id, () => finish(g.id)));
     },
   };
 }

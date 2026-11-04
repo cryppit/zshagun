@@ -55,20 +55,26 @@ const field = (text, name) => {
 
 // Read tools answer in TOON, a YAML-like text. Only these few fields matter here.
 export function readInvoice(text) {
-  try {
-    const j = JSON.parse(text);
-    const orders = j.orders ?? [];
+  let j = null;
+  try { j = JSON.parse(text); } catch { /* TOON */ }
+  if (j) {
+    const inv = j.response ?? j;
+    const orders = inv.orders ?? [];
     const r = orders.find((o) => o.redemption_info)?.redemption_info ?? {};
+    const allDelivered = orders.length > 0 && orders.every((o) => o.status === 'delivered');
     return {
-      state: j.status, code: r.code ?? null, pin: r.pin ?? null, link: r.link ?? null,
+      state: allDelivered ? 'complete' : (inv.invoice_status ?? inv.status), code: r.code ?? null, pin: r.pin ?? null, link: r.link ?? null,
       failed: orders.some((o) => ['failed', 'refunded'].includes(o.status)),
     };
-  } catch {
-    return {
-      state: field(text, 'status'), code: field(text, 'code'), pin: field(text, 'pin'), link: field(text, 'link'),
-      failed: /status: *"?(failed|refunded)\b/.test(text),
-    };
   }
+  // The invoice's own field is invoice_status; a bare status belongs to an order, unless it starts the line at the top level.
+  const top = text.match(/^invoice_status: *"?(\w+)/m)?.[1] ?? text.match(/^status: *"?(\w+)/m)?.[1] ?? null;
+  const orderStates = [...text.matchAll(/^\s+-?\s*status: *"?(\w+)/gm)].map((m) => m[1]);
+  const allDelivered = orderStates.length > 0 && orderStates.every((s) => s === 'delivered');
+  return {
+    state: allDelivered ? 'complete' : top, code: field(text, 'code'), pin: field(text, 'pin'), link: field(text, 'link'),
+    failed: orderStates.some((s) => ['failed', 'refunded'].includes(s)),
+  };
 }
 
 // Balances sit in BTC, USD and EUR sub-accounts. Product details show each one in rupees.
@@ -84,7 +90,7 @@ const BAD_STATES = ['blocked', 'denied', 'payment_error'];
 
 export function createBitrefill({
   client, log = () => {}, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), now = Date.now,
-  pollMs = 4000, timeoutMs = 120000, packageField = 'package_value', balanceCurrency = null,
+  pollMs = 10000, timeoutMs = 180000, packageField = 'package_value', balanceCurrency = null,
 }) {
   let fund = balanceCurrency;
   // A rupee figure, from the sub-account with the most in it. Purchases are then paid from that one.
@@ -109,9 +115,17 @@ export function createBitrefill({
       if (phone) item.refill_input = phone.replace(/^\+/, ''); // international format, no plus sign
       const args = { cart_items: [item], payment_method: 'balance' };
       if (fund) args.balance_currency = fund;
-      const reply = JSON.parse(await client.call('buy-products', args));
-      log(`bitrefill invoice ${reply.invoice_id} created for ${product.id}`);
-      return reply.invoice_id;
+      const text = await client.call('buy-products', args);
+      let reply;
+      try {
+        reply = JSON.parse(text);
+      } catch {
+        throw new BitrefillError('the purchase reply was unreadable, so check the account before doing anything', 'BAD_REPLY');
+      }
+      const invoiceId = reply.response?.invoice_id ?? reply.invoice_id;
+      if (!invoiceId) throw new BitrefillError('the purchase reply had no invoice id, so check the account before doing anything', 'BAD_REPLY');
+      log(`bitrefill invoice ${invoiceId} created for ${product.id}`);
+      return invoiceId;
     },
     async waitDelivered(invoiceId) {
       const deadline = now() + timeoutMs;

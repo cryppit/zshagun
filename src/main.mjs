@@ -74,3 +74,6 @@ async function loop() {
   setTimeout(loop, 15000);
 }
 loop();
+
+// A last line of defence: never let one bad gift take the whole agent down.
+process.on('unhandledRejection', (e) => log(`unhandled: ${e?.code ?? 'error'}`));

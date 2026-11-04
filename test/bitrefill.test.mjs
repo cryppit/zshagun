@@ -20,7 +20,7 @@ function fakeClient(replies) {
 const opts = (client, o = {}) => ({ client, sleep: async () => {}, pollMs: 1, timeoutMs: 50, log: () => {}, ...o });
 
 test('buy_uses_catalog_package_value', async () => {
-  const client = fakeClient({ 'buy-products': '{"invoice_id":"inv1"}' });
+  const client = fakeClient({ 'buy-products': '{"response":{"invoice_id":"inv1"}}' });
   const b = createBitrefill(opts(client));
   assert.equal(await b.buy({ product, phone: '+919999999999' }), 'inv1');
   assert.deepEqual(client.calls[0].args, {
@@ -57,7 +57,7 @@ test('balance_is_rupees_from_the_fullest_sub_account', async () => {
 });
 
 test('buy_pays_from_the_sub_account_that_has_money', async () => {
-  const client = fakeClient({ 'get-product-details': details('0.00', '2500.00'), 'buy-products': '{"invoice_id":"inv1"}' });
+  const client = fakeClient({ 'get-product-details': details('0.00', '2500.00'), 'buy-products': '{"response":{"invoice_id":"inv1"}}' });
   const b = createBitrefill(opts(client));
   await b.balance();
   await b.buy({ product, phone: null });
@@ -83,14 +83,53 @@ test('quote_for_a_vanished_package_is_out_of_stock', async () => {
   assert.equal((await createBitrefill(opts(client)).quote({ slug: 'a', packageValue: '10' })).inStock, false);
 });
 
+test('reads_the_invoice_id_from_the_real_reply_shape', async () => {
+  const reply = JSON.stringify({ response: { invoice_id: 'inv-real', invoice_access_token: 't' }, agent_instructions: 'poll it' });
+  const client = fakeClient({ 'buy-products': reply });
+  assert.equal(await createBitrefill(opts(client)).buy({ product, phone: null }), 'inv-real');
+});
+
+test('a_reply_with_no_invoice_id_throws_and_names_bitrefill', async () => {
+  const client = fakeClient({ 'buy-products': '{"response":{}}' });
+  await assert.rejects(createBitrefill(opts(client)).buy({ product, phone: null }), /Bitrefill.*no invoice/);
+  assert.equal(client.calls.length, 1);
+});
+
+test('a_reply_that_is_not_json_throws_and_names_bitrefill', async () => {
+  const client = fakeClient({ 'buy-products': 'invoice_id: abc' });
+  await assert.rejects(createBitrefill(opts(client)).buy({ product, phone: null }), /Bitrefill/);
+});
+
+test('reads_invoice_status_not_just_status', () => {
+  const text = 'id: inv1\ninvoice_status: complete\norders[1]:\n  - id: o1\n    status: delivered\n    redemption_info:\n      code: ABC';
+  const r = readInvoice(text);
+  assert.equal(r.state, 'complete');
+  assert.equal(r.code, 'ABC');
+});
+
+test('an_order_status_is_never_mistaken_for_the_invoice_status', () => {
+  const text = 'invoice_status: payment_confirmed\norders[1]:\n  - id: o1\n    status: processing';
+  assert.equal(readInvoice(text).state, 'payment_confirmed');
+});
+
+test('invoice_status_in_json_too', () => {
+  assert.equal(readInvoice('{"invoice_status":"complete","orders":[]}').state, 'complete');
+  assert.equal(readInvoice('{"response":{"invoice_status":"complete","orders":[]}}').state, 'complete');
+});
+
+test('all_orders_delivered_counts_even_if_the_invoice_lags', () => {
+  assert.equal(readInvoice('{"invoice_status":"payment_confirmed","orders":[{"status":"delivered"}]}').state, 'complete');
+  assert.equal(readInvoice('invoice_status: payment_confirmed\norders[1]:\n  - id: o1\n    status: delivered').state, 'complete');
+});
+
 test('gift_card_has_no_phone', async () => {
-  const client = fakeClient({ 'buy-products': '{"invoice_id":"inv1"}' });
+  const client = fakeClient({ 'buy-products': '{"response":{"invoice_id":"inv1"}}' });
   await createBitrefill(opts(client)).buy({ product, phone: null });
   assert.equal('refill_input' in client.calls[0].args.cart_items[0], false);
 });
 
 test('package_field_can_follow_the_live_schema', async () => {
-  const client = fakeClient({ 'buy-products': '{"invoice_id":"inv1"}' });
+  const client = fakeClient({ 'buy-products': '{"response":{"invoice_id":"inv1"}}' });
   await createBitrefill(opts(client, { packageField: 'package_id' })).buy({ product, phone: null });
   assert.equal(client.calls[0].args.cart_items[0].package_id, '10');
 });
@@ -102,14 +141,14 @@ test('buy_is_never_retried', async () => {
 });
 
 test('paid_is_not_delivered', async () => {
-  const client = fakeClient({ 'get-invoice-by-id': ['status: payment_confirmed', 'status: pending', 'status: complete\norders[1]:\n  - status: delivered'] });
+  const client = fakeClient({ 'get-invoice-by-id': ['invoice_status: payment_confirmed', 'invoice_status: pending', 'invoice_status: complete\norders[1]:\n  - status: delivered'] });
   const r = await createBitrefill(opts(client)).waitDelivered('inv1');
   assert.equal(r.status, 'delivered');
   assert.equal(client.calls.length, 3);
 });
 
 test('delivered_returns_code', async () => {
-  const text = 'id: inv1\nstatus: complete\norders[1]:\n  - id: o1\n    status: delivered\n    redemption_info:\n      code: ABCD-1234\n      pin: "77"';
+  const text = 'id: inv1\ninvoice_status: complete\norders[1]:\n  - id: o1\n    status: delivered\n    redemption_info:\n      code: ABCD-1234\n      pin: "77"';
   const client = fakeClient({ 'get-invoice-by-id': text });
   assert.deepEqual(await createBitrefill(opts(client)).waitDelivered('inv1'), { status: 'delivered', code: 'ABCD-1234', pin: '77', link: null });
 });
@@ -120,33 +159,33 @@ test('reads_a_json_invoice_too', () => {
 });
 
 test('recharge_has_no_code', async () => {
-  const client = fakeClient({ 'get-invoice-by-id': 'status: complete' });
+  const client = fakeClient({ 'get-invoice-by-id': 'invoice_status: complete' });
   assert.deepEqual(await createBitrefill(opts(client)).waitDelivered('inv1'), { status: 'delivered', code: null, pin: null, link: null });
 });
 
 test('timeout_is_needs_human', async () => {
   let t = 0;
   const client = fakeClient({ 'get-invoice-by-id': { toString: () => 'status: pending' } });
-  client.call = async () => 'status: pending';
+  client.call = async () => 'invoice_status: pending';
   const b = createBitrefill(opts(client, { now: () => (t += 30) }));
   assert.equal((await b.waitDelivered('inv1')).status, 'needs_human');
 });
 
 test('blocked_or_failed_is_needs_human', async () => {
-  for (const text of ['status: blocked', 'status: denied', 'status: payment_error', 'status: pending\norders[1]:\n  - status: failed']) {
+  for (const text of ['invoice_status: blocked', 'invoice_status: denied', 'invoice_status: payment_error', 'invoice_status: pending\norders[1]:\n  - status: failed']) {
     const client = fakeClient({ 'get-invoice-by-id': text });
     assert.equal((await createBitrefill(opts(client)).waitDelivered('inv1')).status, 'needs_human', text);
   }
 });
 
 test('poll_errors_keep_polling', async () => {
-  const client = fakeClient({ 'get-invoice-by-id': [new BitrefillError('down', 'SERVICE_UNAVAILABLE'), 'status: complete'] });
+  const client = fakeClient({ 'get-invoice-by-id': [new BitrefillError('down', 'SERVICE_UNAVAILABLE'), 'invoice_status: complete'] });
   assert.equal((await createBitrefill(opts(client)).waitDelivered('inv1')).status, 'delivered');
 });
 
 test('code_never_logged', async () => {
   const lines = [];
-  const client = fakeClient({ 'buy-products': '{"invoice_id":"inv1"}', 'get-invoice-by-id': 'status: complete\n  code: SECRET-CODE' });
+  const client = fakeClient({ 'buy-products': '{"response":{"invoice_id":"inv1"}}', 'get-invoice-by-id': 'invoice_status: complete\n  code: SECRET-CODE' });
   const b = createBitrefill(opts(client, { log: (l) => lines.push(l) }));
   await b.buy({ product, phone: '+919876543210' });
   await b.waitDelivered('inv1');
@@ -194,7 +233,7 @@ test('http_failure_names_bitrefill_without_the_token', async () => {
 });
 
 test('catalog_id_can_differ_from_the_bitrefill_slug', async () => {
-  const client = fakeClient({ 'buy-products': '{"invoice_id":"inv1"}' });
+  const client = fakeClient({ 'buy-products': '{"response":{"invoice_id":"inv1"}}' });
   await createBitrefill(opts(client)).buy({ product: { id: 'vi-20', slug: 'vi-india', packageValue: '20' }, phone: null });
   assert.equal(client.calls[0].args.cart_items[0].product_id, 'vi-india');
 });

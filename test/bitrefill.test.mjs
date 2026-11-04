@@ -69,6 +69,20 @@ test('no_balance_section_reads_as_zero', async () => {
   assert.equal(await createBitrefill(opts(client)).balance(), 0);
 });
 
+test('quote_reads_the_live_price_and_balance_in_one_call', async () => {
+  const text = `in_stock: true\npackages[1]{package_value,package_currency,payment_price,payment_currency}:\n  "10",INR,"11.20",INR\nurl: x\n${details('0.00', '500.00')}`;
+  const client = fakeClient({ 'get-product-details': text });
+  const q = await createBitrefill(opts(client)).quote({ slug: 'airtel-india', packageValue: '10' });
+  assert.deepEqual(q, { rupees: 11.2, balance: 500, inStock: true });
+  assert.equal(client.calls.length, 1);
+  assert.equal(client.calls[0].args.product_id, 'airtel-india');
+});
+
+test('quote_for_a_vanished_package_is_out_of_stock', async () => {
+  const client = fakeClient({ 'get-product-details': 'in_stock: true\npackages[0]{package_value,package_currency,payment_price,payment_currency}:\nurl: x' });
+  assert.equal((await createBitrefill(opts(client)).quote({ slug: 'a', packageValue: '10' })).inStock, false);
+});
+
 test('gift_card_has_no_phone', async () => {
   const client = fakeClient({ 'buy-products': '{"invoice_id":"inv1"}' });
   await createBitrefill(opts(client)).buy({ product, phone: null });

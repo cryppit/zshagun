@@ -10,6 +10,7 @@
   },
   "scripts": {
     "test": "node --disable-warning=ExperimentalWarning --test \"test/**/*.test.mjs\" \"web/**/*.test.mjs\"",
-    "start": "node --disable-warning=ExperimentalWarning src/main.mjs"
+    "start": "node --disable-warning=ExperimentalWarning src/main.mjs",
+    "demo": "node --disable-warning=ExperimentalWarning src/demo.mjs"
   }
 }

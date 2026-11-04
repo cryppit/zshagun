@@ -39,6 +39,7 @@ function readBody(req) {
 }
 
 export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey, now, log, origins, claimsPerMinute = 10 }) {
+  const products = () => (typeof catalog === 'function' ? catalog() : catalog);
   const pending = new Set();
   const track = (p) => { pending.add(p); p.finally(() => pending.delete(p)); return p; };
 
@@ -111,23 +112,29 @@ export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey
     if (!gift) return send(404, { error: 'unknown_gift' });
     if (gift.state !== 'confirmed') return send(409, { error: 'already_opened', state: PUBLIC_STATE[gift.state] });
 
-    const wanted = catalog.find((p) => p.id === productId);
+    const wanted = products().find((p) => p.id === productId);
+    if (!wanted) return send(409, { error: 'product_not_listed' });
     let phone = null;
-    if (wanted?.needsPhone) {
+    if (wanted.needsPhone) {
       try { phone = await openPhone(agentKey.privateJwk, sealed); } catch { phone = null; }
       if (!/^\+?\d{10,15}$/.test(phone ?? '')) return send(400, { error: 'bad_phone', message: 'Check the phone number.' });
     }
 
-    let balance;
+    let quote;
     try {
-      balance = await bitrefill.balance();
+      quote = await bitrefill.quote(wanted);
     } catch (e) {
-      log(`claim paused: ${e.code ?? 'Bitrefill'} balance check failed`);
+      log(`claim paused: ${e.code ?? 'Bitrefill'} price check failed`);
       return send(503, { error: 'service_down', message: 'Bitrefill is not answering. Your gift is safe. Try again in a minute.' });
     }
+    if (!quote.inStock) {
+      log(`gift ${short(id)} claim refused: out_of_stock`);
+      return send(409, { error: 'out_of_stock' });
+    }
+    const priced = products().map((p) => (p.id === productId ? { ...p, rupees: quote.rupees } : p));
 
     // No await from here to claimOnce, so two taps can't both pass the limits.
-    const verdict = checkClaim({ tier: gift.tier, productId, catalog, spentToday: ledger.spentToday(now()), balance, limits });
+    const verdict = checkClaim({ tier: gift.tier, productId, catalog: priced, spentToday: ledger.spentToday(now()), balance: quote.balance, limits });
     if (!verdict.ok) {
       log(`gift ${short(id)} claim refused: ${verdict.reason}`);
       return send(409, { error: verdict.reason });
@@ -145,7 +152,7 @@ export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey
     if (!(await tokenMatches(req.headers['x-shagun-token'], id))) return send(403, { error: 'wrong_secret' });
     const gift = ledger.get(id);
     if (!gift) return send(404, { error: 'unknown_gift' });
-    const product = catalog.find((p) => p.id === gift.product_id);
+    const product = products().find((p) => p.id === gift.product_id);
     const state = gift.state === 'delivered' ? 'delivered' : PUBLIC_STATE[gift.state];
     const out = { state, product: product ? { name: product.name, label: product.label, kind: product.kind } : null };
     return send(200, gift.code ? { ...out, ...JSON.parse(gift.code) } : out);
@@ -160,7 +167,7 @@ export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey
   function publicGift(id, send) {
     const gift = ledger.get(id);
     if (!gift) return send(404, { error: 'unknown_gift' });
-    const choices = catalog.filter((p) => p.rupees <= gift.tier)
+    const choices = products().filter((p) => p.rupees <= gift.tier)
       .map(({ id: pid, name, label, kind, needsPhone }) => ({ id: pid, name, label, kind, needsPhone }));
     return send(200, { tier: gift.tier, state: PUBLIC_STATE[gift.state], blob: gift.blob, choices, key: agentKey.publicJwk });
   }

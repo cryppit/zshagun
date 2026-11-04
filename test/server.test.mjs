@@ -20,7 +20,7 @@ function fakeBitrefill(over = {}) {
   const bought = [];
   return {
     bought,
-    balance: async () => 1000,
+    quote: async (p) => ({ rupees: p.rupees, balance: 1000, inStock: true }),
     buy: async (o) => { bought.push(o); return `inv${bought.length}`; },
     waitDelivered: async () => ({ status: 'delivered', code: 'CODE-1', pin: null, link: null }),
     ...over,
@@ -38,7 +38,7 @@ async function start(over = {}) {
   const sent = [];
   const bitrefill = over.bitrefill ?? fakeBitrefill();
   const app = createApp({
-    ledger, bitrefill, catalog, limits, agentKey: key, now: () => 1000, log: (l) => lines.push(l),
+    ledger, bitrefill, catalog: over.catalogFn ? () => catalog.slice(1, 2) : catalog, limits, agentKey: key, now: () => 1000, log: (l) => lines.push(l),
     wallet: { send: async (s) => { sent.push(s); return 'z'.repeat(64); } },
     origins: ['https://cryppit.github.io'], claimsPerMinute: over.claimsPerMinute ?? 100,
   });
@@ -124,8 +124,40 @@ test('guard_refusal_keeps_the_gift_open', async (t) => {
   assert.equal(s.ledger.get(s.id).state, 'confirmed');
 });
 
+test('a_live_price_above_the_gift_is_refused', async (t) => {
+  const s = await start({ bitrefill: fakeBitrefill({ quote: async () => ({ rupees: 11.5, balance: 1000, inStock: true }) }) });
+  t.after(s.stop);
+  const r = await s.claim();
+  assert.equal((await r.json()).error, 'costs_more_than_gift');
+  assert.equal(s.ledger.get(s.id).state, 'confirmed');
+  assert.equal(s.bitrefill.bought.length, 0);
+});
+
+test('spend_is_recorded_at_the_live_price', async (t) => {
+  const s = await start({ bitrefill: fakeBitrefill({ quote: async () => ({ rupees: 10.9, balance: 1000, inStock: true }) }) });
+  t.after(s.stop);
+  await s.claim();
+  await s.app.settled();
+  assert.equal(s.ledger.get(s.id).rupees, 10.9);
+});
+
+test('out_of_stock_keeps_the_gift_open', async (t) => {
+  const s = await start({ bitrefill: fakeBitrefill({ quote: async () => ({ rupees: 10.65, balance: 1000, inStock: false }) }) });
+  t.after(s.stop);
+  const r = await s.claim();
+  assert.equal(r.status, 409);
+  assert.equal((await r.json()).error, 'out_of_stock');
+  assert.equal(s.ledger.get(s.id).state, 'confirmed');
+});
+
+test('catalog_can_change_while_running', async (t) => {
+  const s = await start({ catalogFn: true }); t.after(s.stop);
+  const g = await (await fetch(`${s.base}/gift/${s.id}`)).json();
+  assert.deepEqual(g.choices.map((c) => c.id), ['card']);
+});
+
 test('bitrefill_down_before_buying_keeps_the_gift_open', async (t) => {
-  const s = await start({ bitrefill: fakeBitrefill({ balance: async () => { throw new Error('Bitrefill: down'); } }) });
+  const s = await start({ bitrefill: fakeBitrefill({ quote: async () => { throw new Error('Bitrefill: down'); } }) });
   t.after(s.stop);
   const r = await s.claim();
   assert.equal(r.status, 503);

@@ -1,4 +1,42 @@
 {
+  "brands": [
+    {
+      "slug": "airtel-india",
+      "name": "Airtel",
+      "kind": "recharge",
+      "needsPhone": true
+    },
+    {
+      "slug": "reliance-jio-india-bundles",
+      "name": "Jio",
+      "kind": "recharge",
+      "needsPhone": true
+    },
+    {
+      "slug": "vi-india",
+      "name": "Vi",
+      "kind": "recharge",
+      "needsPhone": true
+    },
+    {
+      "slug": "flipkart-india",
+      "name": "Flipkart",
+      "kind": "card",
+      "needsPhone": false
+    },
+    {
+      "slug": "amazon-fresh-india",
+      "name": "Amazon Fresh",
+      "kind": "card",
+      "needsPhone": false
+    },
+    {
+      "slug": "swiggy-money-india",
+      "name": "Swiggy",
+      "kind": "card",
+      "needsPhone": false
+    }
+  ],
   "checked": "2026-11-04, from get-product-details in INR",
   "products": [
     {

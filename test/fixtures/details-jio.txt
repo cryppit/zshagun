@@ -1,0 +1,39 @@
+id: reliance-jio-india-bundles
+name: Jio Bundles India
+country_code: IN
+currency: INR
+categories[1]: refill
+recipient_type: phone_number
+in_stock: true
+ratings:
+  rating_value: 4.9
+  rating_count: 193
+  review_count: 127
+  score_distribution[5]: 0,1,1,19,172
+reviews[3]{content,score,score_max,author_name,created_time,date}:
+  "Its superb , i got this via bharat bhai in bitrefill in Zcash event its really jive",5,5,rahuljp785,"2026-11-02T19:33:02.707Z",2026-11-02
+  "Super service \nVery very best product for user \nI llike this service 🥳🥳🥳",5,5,rajm14112022,"2025-11-02T07:38:57.602Z",2025-11-02
+  Very Fastly My Jio Number Recharge Received. Payment With LTC.,5,5,sonekab642,"2026-10-14T04:03:53.314Z",2026-10-14
+packages[50]{package_value,package_currency,payment_price,payment_currency}:
+  30GB – 30 Day Data Pack,INR,"227.93",INR
+  2GB/Day 5G Plan – 84 Days,INR,"893.63",INR
+  2GB – 2 Day Data Pack,INR,"29.82",INR
+  6GB – 7 Day Data Pack,INR,"71.36",INR
+  12GB – 7 Day Data Pack,INR,"144.85",INR
+  10GB + 10 OTT Apps – 28 Days,INR,"182.13",INR
+  40GB – 30 Day Data Pack,INR,"300.36",INR
+  1.5GB/Day – 1 Month,INR,"331.25",INR
+  2GB/Day + Swiggy One – 84 Days,INR,"1069.37",INR
+  50GB – 30 Day Data Pack,INR,"373.85",INR
+  1.5GB/Day + JioSaavn – 84 Days,INR,"924.51",INR
+  2GB/Day + 20GB Bonus – 90 Days,INR,"935.16",INR
+  2GB/Day + Amazon Prime Lite – 84 Days,INR,"1070.43",INR
+  3GB/Day + Netflix Basic – 84 Days,INR,"1871.39",INR
+  2.5GB/Day + FanCode – 365 Days,INR,"4159.24",INR
+  2GB/Day + JioHotstar – 84 Days,INR,"987.35",INR
+  2GB/Day + Sony LIV & ZEE5 – 84 Days,INR,"1090.67",INR
+  5G Upgrade + 6GB,INR,"105.45",INR
+  5G Upgrade + 3GB,INR,"53.26",INR
+  5G Upgrade + 9GB,INR,"156.57",INR
+  2GB/Day 5G Plan – 14 Days,INR,"205.57",INR
+  2.5GB/Day 5G Plan – 200 Days,INR,"2105.72",I

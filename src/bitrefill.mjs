@@ -1,5 +1,6 @@
 // Bitrefill through its eCommerce MCP server: stateless JSON-RPC over HTTP, so plain fetch is enough.
 // A purchase is one call and is never retried. A second buy after an unclear failure can charge twice.
+import { inStock, readPackages } from './finder.mjs';
 
 export class BitrefillError extends Error {
   constructor(message, code = 'UNKNOWN', status = null) {
@@ -86,14 +87,22 @@ export function createBitrefill({
   pollMs = 4000, timeoutMs = 120000, packageField = 'package_value', balanceCurrency = null,
 }) {
   let fund = balanceCurrency;
+  // A rupee figure, from the sub-account with the most in it. Purchases are then paid from that one.
+  function pickFund(text) {
+    const best = readBalances(text).sort((a, b) => b.rupees - a.rupees)[0];
+    if (!best) return 0;
+    if (best.rupees > 0 && !balanceCurrency) fund = best.currency;
+    return best.rupees;
+  }
   return {
-    // A rupee figure, from the sub-account with the most in it. Purchases are then paid from that one.
     async balance() {
-      const text = await client.call('get-product-details', { product_id: 'airtel-india', currency: 'INR' });
-      const best = readBalances(text).sort((a, b) => b.rupees - a.rupees)[0];
-      if (!best) return 0;
-      if (best.rupees > 0 && !balanceCurrency) fund = best.currency;
-      return best.rupees;
+      return pickFund(await client.call('get-product-details', { product_id: 'airtel-india', currency: 'INR' }));
+    },
+    // Today's price and balance, read right before buying.
+    async quote(product) {
+      const text = await client.call('get-product-details', { product_id: product.slug ?? product.id, currency: 'INR' });
+      const pack = readPackages(text).find((p) => p.value === product.packageValue);
+      return { rupees: pack?.rupees ?? null, balance: pickFund(text), inStock: Boolean(pack) && inStock(text) };
     },
     async buy({ product, phone }) {
       const item = { product_id: product.slug ?? product.id, [packageField]: product.packageValue };
@@ -134,6 +143,7 @@ export function createDryBitrefill({ balance = 1000, log = () => {} } = {}) {
   let n = 0;
   return {
     balance: async () => balance,
+    quote: async (product) => ({ rupees: product.rupees, balance, inStock: true }),
     buy: async ({ product }) => { log(`dry run: would buy ${product.id}`); return `dry-${++n}`; },
     waitDelivered: async () => ({ status: 'delivered', code: 'DRY-RUN-NOT-A-REAL-CODE', pin: null, link: null }),
   };

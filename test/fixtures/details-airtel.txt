@@ -1,0 +1,41 @@
+id: airtel-india
+name: Airtel India
+country_code: IN
+currency: INR
+categories[1]: refill
+recipient_type: phone_number
+in_stock: true
+ratings:
+  rating_value: 4.8
+  rating_count: 53
+  review_count: 43
+  score_distribution[5]: 2,0,0,3,48
+reviews[3]{content,score,score_max,author_name,created_time,date}:
+  Es inmediato! Yo quería comprar datos pero es solo para llamadas!,5,5,ubuctu,"2025-08-25T12:01:15.000Z",2025-08-25
+  Very fast,5,5,chethanbm280,"2025-11-17T10:59:15.173Z",2025-11-17
+  Very good,5,5,dr.hasnainzia,"2025-09-02T05:01:16.286Z",2025-09-02
+packages[5]{package_value,package_currency,payment_price,payment_currency}:
+  "120",INR,"124.62",INR
+  "10",INR,"10.65",INR
+  "500",INR,"519.77",INR
+  "1000",INR,"1039.54",INR
+  "5000",INR,"5199.85",INR
+url: "https://www.bitrefill.com/airtel-india/"
+descriptions: Airtel India products are top ups for Airtel prepaid plans with a variety of denominations<br>
+instructions: "You will receive an SMS once the phone is reloaded with information on the amount recharged\n<br><br>\nIf you want to check Airtel balance? Enter *123# followed by the send button or\nCall 123 and follow the instructions"
+payment_methods:
+  address_based[24]: ethereum,eth_base,usdc_base,usdt_erc20,usdt_trc20,usdc_erc20,usdc_polygon,usdt_polygon,usdc_arbitrum,usdt_arbitrum,usdc_solana,usdt_solana,solana,eth_arbitrum,usdc_bsc,usdt_bsc,lightning,ark,bitcoin,dogecoin,dash,litecoin,ton,usdt_ton
+  link_only[6]: fiat_card,google_pay,apple_pay,ideal,eps,p24
+  balance[2]: balance,cashback
+account_balances:
+  product_currency: INR
+  balances[4]:
+    - payment_method: balance
+      balance_currency: BTC
+      amount: "0.00000000"
+      amount_base: 0
+      decimals: 8
+      equivalent_in_product_currency:
+        amount: "0.00"
+        amount_base: 0
+        decimals: 2

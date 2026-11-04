@@ -40,7 +40,7 @@ export async function startDemo({ apiPort = 8791, webPort = 8080, log = console.
 
   const { products } = JSON.parse(readFileSync(new URL('../catalog.json', import.meta.url)));
   const ledger = createLedger(':memory:');
-  const gift = await makeGift({ tier: 101, message: 'Happy Diwali! This is a demo gift.', refundTo: null, agentAddress: 'demo', pageUrl });
+  const gift = await makeGift({ tier: 101, message: 'Happy Diwali! This is a demo gift.', from: 'Maa', cover: 'diwali', refundTo: null, agentAddress: 'demo', pageUrl });
   const wallet = {
     refresh: async () => {},
     tip: async () => 100,

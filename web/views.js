@@ -45,7 +45,7 @@ const tile = (c, picked) => `<label class="tile"><input type="radio" name="produ
 const group = (title, list, picked) => (list.length ? `<h2>${title}</h2><div class="tiles">${list.map((c) => tile(c, picked)).join('')}</div>` : '');
 
 const VIEWS = {
-  give: ({ tier = 51, cover = 'diwali', error }) => paper(`
+  give: ({ tier = 51, cover = 'diwali', note = '', from = '', refund = '', error }) => paper(`
     <p class="kicker">शगुन, sealed</p>
     <h1>A gift only they can open</h1>
     <p class="lede">They tap a link and choose what they want. They don't need an app, and nobody else can see it.</p>
@@ -57,15 +57,15 @@ const VIEWS = {
         ${COVERS.map((c) => `<label><input type="radio" name="cover" value="${c}" ${c === cover ? 'checked' : ''}><span class="cover c-${c}"><i></i>${c[0].toUpperCase()}${c.slice(1)}</span></label>`).join('')}
       </fieldset>
       <label class="field">Write your note
-        <textarea name="message" rows="3" maxlength="100" placeholder="Happy Diwali! Get something nice."></textarea>
+        <textarea name="message" rows="3" maxlength="100" placeholder="Happy Diwali! Get something nice.">${esc(note)}</textarea>
       </label>
       <label class="field">Sign it (optional)
-        <input name="from" maxlength="24" autocomplete="off" placeholder="Maa">
+        <input name="from" maxlength="24" autocomplete="off" placeholder="Maa" value="${esc(from)}">
         <span class="fine hint">Your name and note are locked in this browser. Only the person you send it to can read them.</span>
       </label>
-      <details><summary>If they never open it</summary>
+      <details${refund ? ' open' : ''}><summary>If they never open it</summary>
         <label class="field">Refund address (optional)
-          <input name="refund" autocomplete="off" spellcheck="false" placeholder="utest1…">
+          <input name="refund" autocomplete="off" spellcheck="false" placeholder="utest1…" value="${esc(refund)}">
         </label>
         <p class="fine">With this, an unopened gift comes back after 24 hours, and you get a private note when it's opened. Without it, an unopened gift can't come back.</p>
       </details>

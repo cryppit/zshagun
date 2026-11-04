@@ -69,13 +69,13 @@ export const COVERS = ['diwali', 'wedding', 'birthday'];
 
 // What goes inside the encryption: the note, who it's from and the envelope. The agent sees none of it.
 export function packNote({ from = '', message = '', cover = 'diwali' }) {
-  return JSON.stringify({ f: from, m: message, c: COVERS.includes(cover) ? cover : 'diwali' });
+  return JSON.stringify({ f: from, m: message, c: Math.max(COVERS.indexOf(cover), 0) }); // a number, because memo space is tight
 }
 
 export function readNote(text) {
   try {
     const { f, m, c } = JSON.parse(text);
-    if (typeof m === 'string') return { from: String(f ?? ''), message: m, cover: COVERS.includes(c) ? c : 'diwali' };
+    if (typeof m === 'string') return { from: String(f ?? ''), message: m, cover: COVERS[c] ?? 'diwali' };
   } catch { /* an older gift: the whole text is the note */ }
   return { from: '', message: text, cover: 'diwali' };
 }

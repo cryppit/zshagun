@@ -113,7 +113,10 @@ root.addEventListener('submit', async (e) => {
       });
       show({ screen: 'pay', ...gift, cover: form.get('cover'), qr: qrSvg(gift.uri), error: null });
     } catch (err) {
-      show({ screen: 'give', cover: form.get('cover'), error: err.message.includes('memo') ? 'That message is too long. Shorten it a little.' : err.message });
+      show({
+        screen: 'give', tier: Number(form.get('tier')), cover: form.get('cover'), note: form.get('message'), from: form.get('from'), refund: form.get('refund'),
+        error: err.message.includes('memo') ? 'That note is too long. Shorten it a little.' : err.message,
+      });
     }
   }
 

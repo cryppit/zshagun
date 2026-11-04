@@ -289,3 +289,13 @@ test('the_coin_is_ours_not_a_z_mark', () => {
     assert.doesNotMatch(html, /class="coin-text[^"]*">z</, s);
   }
 });
+
+test('a_refused_gift_keeps_everything_the_giver_typed', () => {
+  const html = screen({ screen: 'give', tier: 101, cover: 'wedding', note: 'hi "there"', from: 'Maa', refund: 'utest1abc', error: 'Too long.' });
+  assert.match(html, />hi &quot;there&quot;<\/textarea>/);
+  assert.match(html, /name="from"[^>]*value="Maa"/);
+  assert.match(html, /name="refund"[^>]*value="utest1abc"/);
+  assert.match(html, /value="101" checked/);
+  assert.match(html, /value="wedding" checked/);
+  assert.match(html, /<details open>/);
+});

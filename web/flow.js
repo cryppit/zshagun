@@ -1,12 +1,12 @@
 // What the page does, without touching the DOM. `api` is { base, fetch }.
 import {
-  buildMemo, claimToken, decryptMessage, encryptMessage, giftId, isRefundAddress, newSecret, paymentUri, sealPhone, tierZat,
+  buildMemo, claimToken, decryptMessage, encryptMessage, giftId, isRefundAddress, newSecret, packNote, paymentUri, readNote, sealPhone, tierZat,
 } from './gift.js';
 
-export async function makeGift({ tier, message, refundTo, agentAddress, pageUrl }) {
+export async function makeGift({ tier, message, from, cover, refundTo, agentAddress, pageUrl }) {
   if (refundTo && !isRefundAddress(refundTo)) throw new Error('That refund address does not look right. Check it, or leave it empty.');
   const secret = newSecret();
-  const memo = buildMemo({ id: await giftId(secret), tier, refundTo: refundTo || null, blob: await encryptMessage(secret, message) });
+  const memo = buildMemo({ id: await giftId(secret), tier, refundTo: refundTo || null, blob: await encryptMessage(secret, packNote({ from, message, cover })) });
   const zat = tierZat(tier);
   return { link: `${pageUrl}#${secret}`, memo, zat, uri: paymentUri({ address: agentAddress, zat, memo }) };
 }
@@ -66,7 +66,7 @@ export async function loadGift(hash, api) {
   const { state, tier, blob, choices, key } = reply.body;
   if (state === 'open') {
     try {
-      return { screen: 'open', secret, tier, choices, key, message: await decryptMessage(secret, blob) };
+      return { screen: 'open', secret, tier, choices, key, ...readNote(await decryptMessage(secret, blob)) };
     } catch {
       return { screen: 'bad_link' };
     }

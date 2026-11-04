@@ -11,6 +11,7 @@ let timer = null;
 function show(next) {
   state = { ...state, ...next };
   clearTimeout(timer);
+  document.documentElement.dataset.cover = state.cover ?? 'diwali';
   root.innerHTML = screen(state);
   syncPhoneField();
   if (state.screen === 'on_its_way') timer = setTimeout(refresh, 10000);
@@ -93,7 +94,10 @@ root.addEventListener('click', async (e) => {
   }
 });
 
-root.addEventListener('change', syncPhoneField);
+root.addEventListener('change', (e) => {
+  syncPhoneField();
+  if (e.target.name === 'cover') document.documentElement.dataset.cover = e.target.value;
+});
 
 root.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -103,12 +107,13 @@ root.addEventListener('submit', async (e) => {
   if (e.target.id === 'give') {
     try {
       const gift = await makeGift({
-        tier: Number(form.get('tier')), message: form.get('message').trim(), refundTo: form.get('refund')?.trim() || null,
+        tier: Number(form.get('tier')), message: form.get('message').trim(), from: form.get('from').trim(), cover: form.get('cover'),
+        refundTo: form.get('refund')?.trim() || null,
         agentAddress: config.agentAddress, pageUrl: location.origin + location.pathname,
       });
-      show({ screen: 'pay', ...gift, qr: qrSvg(gift.uri), error: null });
+      show({ screen: 'pay', ...gift, cover: form.get('cover'), qr: qrSvg(gift.uri), error: null });
     } catch (err) {
-      show({ screen: 'give', error: err.message.includes('memo') ? 'That message is too long. Shorten it a little.' : err.message });
+      show({ screen: 'give', cover: form.get('cover'), error: err.message.includes('memo') ? 'That message is too long. Shorten it a little.' : err.message });
     }
   }
 

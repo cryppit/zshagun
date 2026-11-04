@@ -247,3 +247,45 @@ test('zcash_is_never_named_on_recipient_screens', () => {
 test('the_headline_is_our_own', () => {
   assert.doesNotMatch(screen({ screen: 'give' }), /cash in an envelope/i);
 });
+
+test('sender_and_cover_survive_the_trip', async () => {
+  const g = await makeGift({ tier: 11, message: 'hi', from: 'Maa', cover: 'wedding', refundTo: null, agentAddress: UA, pageUrl: PAGE });
+  const secret = secretFromHash(new URL(g.link).hash);
+  const { blob } = parseMemo(g.memo);
+  const s = await loadGift(`#${secret}`, api(() => json(200, { tier: 11, state: 'open', blob, choices: [], key: {} })));
+  assert.equal(s.from, 'Maa');
+  assert.equal(s.message, 'hi');
+  assert.equal(s.cover, 'wedding');
+});
+
+test('sender_shows_on_the_envelope_and_the_letter', () => {
+  const html = screen({ screen: 'open', tier: 11, message: 'hi', from: 'Maa' });
+  assert.equal(html.match(/From Maa/g).length, 2);
+});
+
+test('sender_is_escaped', () => {
+  const html = screen({ screen: 'open', tier: 11, message: '', from: '<b>Maa' });
+  assert.ok(!html.includes('<b>Maa'));
+});
+
+test('no_sender_reads_warmly_with_no_gap', () => {
+  const html = screen({ screen: 'open', tier: 11, message: 'hi', from: '' });
+  assert.doesNotMatch(html, /From\s*</);
+  assert.match(html, /Someone is thinking of you/);
+});
+
+test('give_offers_three_envelopes_and_a_name', () => {
+  const html = screen({ screen: 'give' });
+  for (const c of ['diwali', 'wedding', 'birthday']) assert.match(html, new RegExp(`name="cover" value="${c}"`));
+  assert.match(html, /name="from"/);
+  assert.match(html, /maxlength="24"/);
+  assert.match(html, /name="message"[^>]*maxlength="100"/);
+});
+
+test('the_coin_is_ours_not_a_z_mark', () => {
+  for (const s of ['open', 'buying', 'share', 'already_opened']) {
+    const html = screen({ screen: s, tier: 11, link: 'x', message: '' });
+    assert.match(html, />श</, s);
+    assert.doesNotMatch(html, /class="coin-text[^"]*">z</, s);
+  }
+});

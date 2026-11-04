@@ -229,3 +229,21 @@ test('the_error_sits_in_the_dock_above_the_button', () => {
   const html = screen({ screen: 'choosing', tier: 11, choices: [], error: 'Enter a number.' });
   assert.match(html, /class="dock"><p class="error"/);
 });
+
+test('giver_screens_credit_zcash_with_a_link_to_z_cash', () => {
+  for (const name of ['give', 'pay', 'share']) {
+    const html = screen({ screen: name, zat: 1100000, uri: 'zcash:x', qr: '', link: 'x' });
+    assert.match(html, /href="https:\/\/z\.cash\/?"/, name);
+    assert.match(html, /Powered by Zcash/, name);
+  }
+});
+
+test('zcash_is_never_named_on_recipient_screens', () => {
+  for (const name of ['open', 'choosing', 'buying', 'done_recharge', 'done_code']) {
+    assert.doesNotMatch(screen({ screen: name, tier: 11, choices: [], product: {}, code: 'C' }), /z\.cash|Zcash/, name);
+  }
+});
+
+test('the_headline_is_our_own', () => {
+  assert.doesNotMatch(screen({ screen: 'give' }), /cash in an envelope/i);
+});

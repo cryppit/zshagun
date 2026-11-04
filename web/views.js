@@ -20,6 +20,12 @@ export const coin = (label = 'z', cls = '') => `<svg class="coin ${cls}" viewBox
 
 const mark = '<p class="mark"><span>z</span>shagun</p>';
 
+// The real Zcash brandmark, unaltered, as a credit only. Their policy allows "powered by Zcash" with a link to z.cash,
+// as long as our own name stays more prominent. It must never be used as our logo.
+const powered = `<a class="powered" href="https://z.cash" target="_blank" rel="noreferrer noopener">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0A12 12 0 0 0 0 12a12.013 12.013 0 0 0 12 12 12 12 0 1 0 0-24zm-1.008 4.418h2.014v2.014l3.275-.002v1.826l-5.08 6.889h5.08v2.423h-3.275v2.006h-2.012v-2.006H7.72v-1.826l5.074-6.888H7.719V6.432h3.273V4.418z"/></svg>
+  <span>Powered by Zcash</span></a>`;
+
 const lifafa = (inner = '') => `<div class="lifafa">
   <svg class="flap" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
     <polygon points="0,0 100,0 50,100" class="flap-fill"/>
@@ -41,7 +47,7 @@ const group = (title, list, picked) => (list.length ? `<h2>${title}</h2><div cla
 const VIEWS = {
   give: ({ tier = 51, error }) => paper(`
     <p class="kicker">शगुन, sealed</p>
-    <h1>Give it like cash in an envelope</h1>
+    <h1>A gift only they can open</h1>
     <p class="lede">They tap a link and choose what they want. They don't need an app, and nobody else can see it.</p>
     <form id="give">
       <fieldset class="tiers"><legend>Pick the coin</legend>
@@ -59,7 +65,8 @@ const VIEWS = {
       ${error ? `<p class="error" role="alert">${esc(error)}</p>` : ''}
       <button class="gold" type="submit">Seal it</button>
     </form>
-    <p class="fine">Your note is locked in this browser. Nothing is sent until you pay.</p>`),
+    <p class="fine">Your note is locked in this browser. Nothing is sent until you pay.</p>
+    ${powered}`),
 
   pay: ({ zat, uri, qr }) => paper(`
     <p class="kicker">One step left</p>
@@ -70,7 +77,8 @@ const VIEWS = {
     <button class="ghost" data-copy="${esc(uri)}">Copy payment link</button>
     <button class="gold" data-go="share">I've paid</button>
     <p class="fine"><b>Who can see this:</b> the public chain shows a private payment, not who, how much or the message. zshagun sees the amount and your refund address if you gave one, but not your name or message. Your wallet adds a small network fee.</p>
-    <p class="fine">Stay on this page. Your gift link comes next, and only this page has it.</p>`),
+    <p class="fine">Stay on this page. Your gift link comes next, and only this page has it.</p>
+    ${powered}`),
 
   share: ({ link }) => paper(`
     ${coin('z', 'drop')}
@@ -79,7 +87,8 @@ const VIEWS = {
     <p class="link">${esc(link)}</p>
     <button class="gold" data-share="${esc(link)}">Send it</button>
     <button class="ghost" data-copy="${esc(link)}">Copy link</button>
-    <p class="fine">It can open a minute or two after your payment goes through.</p>`, 'center'),
+    <p class="fine">It can open a minute or two after your payment goes through.</p>
+    ${powered}`, 'center'),
 
   on_its_way: () => `<div class="scene">${mark}${coin('z', 'spin')}<h1 class="on-red">Your gift is on its way</h1><p class="on-red">It will open here by itself, usually within a couple of minutes. You can keep this page open.</p></div>`,
 

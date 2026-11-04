@@ -17,6 +17,13 @@ In India, *shagun* is the gift of money you give at Diwali and weddings. It trad
 4. The recipient taps it, reads the message and picks an Airtel recharge. They never see the word "crypto".
 5. An agent checks its limits, buys through Bitrefill from a prepaid balance, and sends the giver a private "opened" note.
 
+## Others in this space
+
+Crypto red-packet links aren't new. [Angpao.money](https://ethglobal.com/showcase/angpao-money-1mn7c) (ETHGlobal Singapore 2024), [HongBao](https://ethglobal.com/showcase/hongbao-oaust),
+[RedEnvelope](https://ethglobal.com/showcase/redenvelope-uc25t) and exchange red packets all put crypto in the recipient's hands, on public chains, usually through a wallet.
+In Zcash, ZecLink and ZIP 324 links deliver ZEC. zshagun differs in two ways: the recipient gets a phone recharge or gift card and never holds crypto, and the payment is shielded,
+with no public record linking giver and recipient.
+
 ## How it works
 
 The link's `#fragment` holds a 32-byte secret `S`. Browsers don't send a fragment to any server. Two keys come out of `S`:
@@ -127,3 +134,5 @@ The agent serves both.
 - One confirmation is enough to fund a gift here. Mainnet should wait for more.
 
 MIT licence. See `LICENSE`.
+
+zshagun is an independent project. It isn't made, endorsed or sponsored by the Zcash Foundation, Electric Coin Company or Bitrefill. Zcash is a trademark of its owners.

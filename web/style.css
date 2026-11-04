@@ -61,6 +61,8 @@ a { color: var(--sindoor); font-weight: 600; }
 .lede { color: var(--ink-soft); margin-top: 0; }
 .fine { color: var(--ink-soft); font-size: .86rem; line-height: 1.4; }
 .error { color: var(--error); font-weight: 600; }
+.powered { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; color: var(--ink-soft); font-size: .8rem; font-weight: 400; text-decoration: none; }
+.powered svg { width: 16px; height: 16px; fill: #000; flex: none; }
 
 button {
   font: 600 1.08rem/1.2 Hind, system-ui, sans-serif;

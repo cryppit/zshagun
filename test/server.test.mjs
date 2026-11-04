@@ -194,6 +194,24 @@ test('a_ledger_failure_after_buying_never_crashes_the_agent', async (t) => {
   assert.equal((await fetch(`${s.base}/health`)).status, 200);
 });
 
+test('a_card_with_no_code_falls_back_to_its_order_link', async (t) => {
+  const s = await start({ bitrefill: fakeBitrefill({ waitDelivered: async () => ({ status: 'delivered', code: null, pin: null, link: null, accessLink: 'https://b.test/o#k' }) }) });
+  t.after(s.stop);
+  await s.claim();
+  await s.app.settled();
+  assert.equal((await (await s.status()).json()).link, 'https://b.test/o#k');
+});
+
+test('a_recharge_never_shows_an_order_link', async (t) => {
+  const s = await start({ bitrefill: fakeBitrefill({ waitDelivered: async () => ({ status: 'delivered', code: null, pin: null, link: null, accessLink: 'https://b.test/o#k' }) }) });
+  t.after(s.stop);
+  await s.claim({ productId: 'airtel', phone: await sealPhone(key.publicJwk, PHONE) });
+  await s.app.settled();
+  const c = await (await s.status()).json();
+  assert.equal(c.link, undefined);
+  assert.equal(s.ledger.get(s.id).code, null);
+});
+
 test('undelivered_is_needs_human', async (t) => {
   const s = await start({ bitrefill: fakeBitrefill({ waitDelivered: async () => ({ status: 'needs_human' }) }) });
   t.after(s.stop);

@@ -260,3 +260,26 @@ test('a_refunded_order_in_table_form_is_seen', () => {
 test('all_delivered_status_counts_as_complete', () => {
   assert.equal(readInvoice('invoice_status: payment_confirmed\norders_delivery_status: all_delivered').state, 'complete');
 });
+
+const realInvoice = (await import('node:fs')).readFileSync(new URL('./fixtures/invoice-real.txt', import.meta.url), 'utf8');
+
+test('reads_a_real_single_invoice', () => {
+  const r = readInvoice(realInvoice);
+  assert.equal(r.state, 'complete');
+  assert.equal(r.failed, false);
+  assert.equal(r.code, null);
+  assert.equal(r.link, null);
+  assert.equal(r.accessLink, 'https://www.bitrefill.com/account/x#y');
+});
+
+test('a_payment_status_is_not_an_order_status', () => {
+  const text = realInvoice.replace('orders_delivery_status: all_delivered', 'orders_delivery_status: not_delivered').replace('    status: delivered', '    status: processing').replace('invoice_status: complete', 'invoice_status: payment_confirmed');
+  assert.equal(readInvoice(text).state, 'payment_confirmed');
+});
+
+test('waiting_hands_back_the_access_link', async () => {
+  const client = fakeClient({ 'get-invoice-by-id': realInvoice });
+  const r = await createBitrefill(opts(client)).waitDelivered('inv1');
+  assert.equal(r.status, 'delivered');
+  assert.equal(r.accessLink, 'https://www.bitrefill.com/account/x#y');
+});

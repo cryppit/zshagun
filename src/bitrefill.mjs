@@ -64,6 +64,7 @@ export function readInvoice(text) {
     const allDelivered = orders.length > 0 && orders.every((o) => o.status === 'delivered');
     return {
       state: allDelivered ? 'complete' : (inv.invoice_status ?? inv.status), code: r.code ?? null, pin: r.pin ?? null, link: r.link ?? null,
+      accessLink: orders.find((o) => o.access_link)?.access_link ?? null,
       failed: orders.some((o) => ['failed', 'refunded'].includes(o.status)),
     };
   }
@@ -78,7 +79,7 @@ export function readInvoice(text) {
   const states = [...listed, ...tabled];
   const allDelivered = /orders_delivery_status: *"?all_delivered/.test(text) || (states.length > 0 && states.every((x) => x === 'delivered'));
   const failed = refunded || states.some((x) => ['failed', 'refunded'].includes(x));
-  return { state: allDelivered ? 'complete' : top, code: field(text, 'code'), pin: field(text, 'pin'), link: field(text, 'link'), failed };
+  return { state: allDelivered ? 'complete' : top, code: field(text, 'code'), pin: field(text, 'pin'), link: field(text, 'link'), accessLink: field(text, 'access_link'), failed };
 }
 
 // Balances sit in BTC, USD and EUR sub-accounts. Product details show each one in rupees.
@@ -146,7 +147,7 @@ export function createBitrefill({
         }
         if (inv?.state === 'complete') {
           log(`bitrefill invoice ${invoiceId} delivered`);
-          return { status: 'delivered', code: inv.code, pin: inv.pin, link: inv.link };
+          return { status: 'delivered', code: inv.code, pin: inv.pin, link: inv.link, accessLink: inv.accessLink };
         }
         await sleep(pollMs);
       }

@@ -13,7 +13,7 @@ import { createApp } from './server.mjs';
 import { watch } from './watcher.mjs';
 
 const webRoot = fileURLToPath(new URL('../web/', import.meta.url));
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
 const listen = (server, port) => new Promise((r) => { server.listen(port, '127.0.0.1', () => r(server.address().port)); });
 
 export async function startDemo({ apiPort = 8791, webPort = 8080, log = console.log } = {}) {

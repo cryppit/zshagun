@@ -14,7 +14,7 @@ const card = (body, cls = '') => `<section class="card ${cls}">${body}</section>
 const notice = (title, text, extra = '') => card(`${DIYA}<h1>${title}</h1><p>${text}</p>${extra}`, 'center');
 
 const rupees = (n) => `₹${esc(n)}`;
-const taz = (zat) => (zat / 1e8).toFixed(2);
+const taz = (zat) => (zat / 1e8).toFixed(8).replace(/0+$/, '').replace(/\.$/, '');
 
 const VIEWS = {
   give: ({ tier = 51, error }) => card(`

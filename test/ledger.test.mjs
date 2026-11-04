@@ -72,3 +72,21 @@ test('forget_wipes_phone_and_code', () => {
 test('set_state_rejects_unknown_fields', () => {
   assert.throws(() => open().setState('g1', 'x', { nope: 1 }));
 });
+
+test('dry_run_purchases_do_not_count_as_spending', () => {
+  const l = open();
+  l.claimOnce('g1', { ...claim, rupees: 54.32 });
+  l.setState('g1', 'delivered', { invoice_id: 'dry-1' });
+  assert.equal(l.spentToday(2000), 0);
+  l.addGift(gift({ id: 'g2', txid: 't2' }));
+  l.setState('g2', 'confirmed');
+  l.claimOnce('g2', { ...claim, rupees: 10.65 });
+  l.setState('g2', 'buying', { invoice_id: 'real-1' });
+  assert.equal(l.spentToday(2000), 10.65);
+});
+
+test('a_claim_with_no_invoice_yet_still_counts', () => {
+  const l = open();
+  l.claimOnce('g1', { ...claim, rupees: 10.65 });
+  assert.equal(l.spentToday(2000), 10.65);
+});

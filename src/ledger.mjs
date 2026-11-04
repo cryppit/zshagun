@@ -18,7 +18,8 @@ export function createLedger(path) {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'seen', ?)`);
   const claim = db.prepare(`UPDATE gifts SET state = 'claimed', product_id = ?, phone = ?, rupees = ?, claimed_at = ?
     WHERE id = ? AND state = 'confirmed'`);
-  const spent = db.prepare('SELECT COALESCE(SUM(rupees), 0) AS total FROM gifts WHERE claimed_at >= ? AND claimed_at < ?');
+  const spent = db.prepare(`SELECT COALESCE(SUM(rupees), 0) AS total FROM gifts
+    WHERE claimed_at >= ? AND claimed_at < ? AND COALESCE(invoice_id, '') NOT LIKE 'dry-%'`);
   return {
     addGift: ({ id, txid, output, zat, tier, refundTo, blob, height, now }) =>
       insert.run(id, txid, output, zat, tier, refundTo, blob, height, now).changes === 1,

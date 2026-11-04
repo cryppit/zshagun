@@ -177,3 +177,9 @@ test('recipient_screens_have_no_crypto_words', () => {
     assert.doesNotMatch(screen({ ...data, screen: name }), /crypto|wallet|zcash|zec\b|blockchain|shielded|token/i, name);
   }
 });
+
+test('pay_screen_shows_the_exact_amount', () => {
+  assert.match(screen({ screen: 'pay', zat: 5100000, uri: 'zcash:x', qr: '' }), /0\.051 TAZ/);
+  assert.match(screen({ screen: 'pay', zat: 1100000, uri: 'zcash:x', qr: '' }), /0\.011 TAZ/);
+  assert.match(screen({ screen: 'pay', zat: 10100000, uri: 'zcash:x', qr: '' }), /0\.101 TAZ/);
+});

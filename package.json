@@ -1,0 +1,13 @@
+{
+  "name": "shagun",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Private gift links from shielded Zcash: tap, pick a recharge or gift card, no wallet",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "test": "node --test --disable-warning=ExperimentalWarning test/*.test.mjs web/*.test.mjs",
+    "start": "node --disable-warning=ExperimentalWarning src/main.mjs"
+  }
+}

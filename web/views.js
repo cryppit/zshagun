@@ -123,7 +123,7 @@ const VIEWS = {
       ${group('Gift cards', cards, chosen)}
       <label class="field" id="phone-field">Phone number to recharge
         <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="98765 43210" value="${esc(phoneText)}">
-        <span class="fine hint">zshagun and Bitrefill see this number, to do the recharge. zshagun deletes it afterwards.</span>
+        <span class="fine hint">zshagun and Bitrefill see this number, to do the recharge. zshagun deletes it afterwards. Carriers take fees: a ₹10 recharge adds about ₹7.50 talktime.</span>
       </label>
       <div class="dock">${error ? `<p class="error" role="alert">${esc(error)}</p>` : ''}<button class="gold" type="submit">Get it</button><p class="fine">You can only choose once.</p></div>
     </form>`);

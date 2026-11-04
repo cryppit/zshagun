@@ -299,3 +299,7 @@ test('a_refused_gift_keeps_everything_the_giver_typed', () => {
   assert.match(html, /value="wedding" checked/);
   assert.match(html, /<details open>/);
 });
+
+test('recipients_are_told_a_recharge_loses_some_to_fees', () => {
+  assert.match(screen({ screen: 'choosing', tier: 11, choices: [] }), /about ₹7\.50/);
+});

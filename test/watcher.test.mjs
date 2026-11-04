@@ -129,3 +129,15 @@ test('claimed_gift_never_expires', async () => {
   assert.equal(ctx.ledger.get(ID).state, 'claimed');
   assert.equal(sent.length, 0);
 });
+
+test('unseen_codes_are_wiped_after_an_hour', async () => {
+  const { ctx } = setup([row()]);
+  await watch(ctx);
+  ctx.ledger.claimOnce(ID, { productId: 'p', phone: null, rupees: 10, now: 1000 });
+  ctx.ledger.setState(ID, 'delivered', { code: '{"code":"X"}', delivered_at: 1000 });
+  await watch(ctx);
+  assert.equal(ctx.ledger.get(ID).code, '{"code":"X"}');
+  ctx.now = () => 1000 + 3600 * 1000;
+  await watch(ctx);
+  assert.equal(ctx.ledger.get(ID).code, null);
+});

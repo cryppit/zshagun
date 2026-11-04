@@ -91,3 +91,13 @@ test('tier_converts_at_the_demo_rate', () => {
   assert.equal(tierZat(10), 1000000);
   assert.equal(tierZat(101), 10100000);
 });
+
+test('sealed_phone_opens_only_with_the_agent_key', async () => {
+  const { newAgentKey, sealPhone, openPhone } = await import('../web/gift.js');
+  const agent = await newAgentKey();
+  const other = await newAgentKey();
+  const sealed = await sealPhone(agent.publicJwk, '+919876543210');
+  assert.ok(!sealed.includes('9876543210'));
+  assert.equal(await openPhone(agent.privateJwk, sealed), '+919876543210');
+  await assert.rejects(openPhone(other.privateJwk, sealed));
+});

@@ -3,6 +3,7 @@ import { parseMemo } from '../web/gift.js';
 import { checkGift } from './guard.mjs';
 
 export const REFUND_FEE_ZAT = 10000; // the network fee for sending it back comes out of the refund
+export const CODE_KEEP_MS = 3600 * 1000; // a code the page never confirmed seeing is wiped after an hour
 
 const REFUND_MEMO = {
   refused: 'Your Shagun could not be accepted, so it has come back to you.',
@@ -57,5 +58,9 @@ export async function watch(ctx) {
 
   for (const gift of ledger.inState('confirmed')) {
     if (now() - gift.created_at >= expireMs) await refund(ctx, gift, 'expired');
+  }
+
+  for (const gift of ledger.inState('delivered')) {
+    if (gift.code && now() - gift.delivered_at >= CODE_KEEP_MS) ledger.forget(gift.id);
   }
 }

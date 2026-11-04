@@ -116,3 +116,35 @@ export function paymentUri({ address, zat, memo }) {
   const amount = frac ? `${whole}.${frac}` : whole;
   return `zcash:${address}?amount=${amount}&memo=${toB64url(enc.encode(memo))}`;
 }
+
+// The phone number is sealed to the agent's key in the browser, so the tunnel in between can't read it.
+const ECDH = { name: 'ECDH', namedCurve: 'P-256' };
+
+async function sharedKey(privateKey, publicKey, use) {
+  const bits = await subtle.deriveBits({ name: 'ECDH', public: publicKey }, privateKey, 256);
+  const hkdf = await subtle.importKey('raw', bits, 'HKDF', false, ['deriveKey']);
+  return subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: enc.encode('shagun phone v1') },
+    hkdf, { name: 'AES-GCM', length: 256 }, false, [use]);
+}
+
+export async function newAgentKey() {
+  const pair = await subtle.generateKey(ECDH, true, ['deriveBits']);
+  return { publicJwk: await subtle.exportKey('jwk', pair.publicKey), privateJwk: await subtle.exportKey('jwk', pair.privateKey) };
+}
+
+export async function sealPhone(publicJwk, phone) {
+  const agent = await subtle.importKey('jwk', publicJwk, ECDH, false, []);
+  const mine = await subtle.generateKey(ECDH, true, ['deriveBits']);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await subtle.encrypt({ name: 'AES-GCM', iv }, await sharedKey(mine.privateKey, agent, 'encrypt'), enc.encode(phone));
+  const pub = new Uint8Array(await subtle.exportKey('raw', mine.publicKey));
+  return [pub, iv, new Uint8Array(ct)].map(toB64url).join('.');
+}
+
+export async function openPhone(privateJwk, sealed) {
+  const [pub, iv, ct] = sealed.split('.').map(fromB64url);
+  const agent = await subtle.importKey('jwk', privateJwk, ECDH, false, ['deriveBits']);
+  const theirs = await subtle.importKey('raw', pub, ECDH, false, []);
+  const pt = await subtle.decrypt({ name: 'AES-GCM', iv }, await sharedKey(agent, theirs, 'decrypt'), ct);
+  return dec.decode(pt);
+}

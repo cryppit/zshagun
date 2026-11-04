@@ -173,7 +173,7 @@ test('every_screen_renders_without_gaps', () => {
 
 test('recipient_screens_have_no_crypto_words', () => {
   const data = { tier: 11, message: 'hi', choices: [], product: { name: 'A', kind: 'card', rupees: 10 }, code: 'C' };
-  for (const name of ['on_its_way', 'open', 'choosing', 'buying', 'done_recharge', 'done_code', 'already_opened', 'needs_human', 'service_down']) {
+  for (const name of ['on_its_way', 'open', 'choosing', 'buying', 'already_opened', 'needs_human', 'service_down']) {
     assert.doesNotMatch(screen({ ...data, screen: name }), /crypto|wallet|zcash|zec\b|blockchain|shielded|token/i, name);
   }
 });
@@ -239,7 +239,7 @@ test('giver_screens_credit_zcash_with_a_link_to_z_cash', () => {
 });
 
 test('zcash_is_never_named_on_recipient_screens', () => {
-  for (const name of ['open', 'choosing', 'buying', 'done_recharge', 'done_code']) {
+  for (const name of ['on_its_way', 'open', 'choosing', 'buying']) {
     assert.doesNotMatch(screen({ screen: name, tier: 11, choices: [], product: {}, code: 'C' }), /z\.cash|Zcash/, name);
   }
 });
@@ -327,4 +327,32 @@ test('a_gift_saved_in_the_old_format_still_shows', () => {
   const html = screen({ screen: 'done_code', code: 'OLD-1', pin: '77', product: {} });
   assert.ok(html.includes('OLD-1'));
   assert.ok(html.includes('77'));
+});
+
+test('the_envelope_promises_what_it_will_never_ask_for', () => {
+  const html = screen({ screen: 'open', tier: 11, message: '' });
+  assert.match(html, /never asks for your OTP, UPI PIN, bank details or password/);
+  assert.match(html, /it's fake/);
+});
+
+test('zcash_is_introduced_only_after_the_gift_arrives', () => {
+  for (const name of ['done_recharge', 'done_code']) {
+    const html = screen({ screen: name, product: { name: 'A', label: 'x' }, code: 'C' });
+    assert.match(html, /This gift stayed private/, name);
+    assert.match(html, /sent with Zcash/, name);
+    assert.match(html, /href="https:\/\/z\.cash"/, name);
+    assert.match(html, /Send a shagun/, name);
+  }
+});
+
+test('the_ending_claims_only_what_is_true', () => {
+  const html = screen({ screen: 'done_recharge', product: {} });
+  assert.match(html, /public record/);
+  assert.doesNotMatch(html, /nobody can see/i);
+  assert.doesNotMatch(html, /wallet|crypto|shielded/i);
+});
+
+test('recipients_are_told_one_choice_and_no_change', () => {
+  assert.match(screen({ screen: 'choosing', tier: 101, choices: [] }), /choose one thing, once/);
+  assert.match(screen({ screen: 'choosing', tier: 101, choices: [] }), /isn't saved for later/);
 });

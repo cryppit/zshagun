@@ -161,6 +161,10 @@ summary { cursor: pointer; color: var(--sindoor); font-weight: 600; padding: 4px
 .invite { position: absolute; z-index: 2; left: 20px; right: 20px; top: calc(48% + 92px); text-align: center; color: var(--paper); transition: opacity .3s; }
 .invite h1 { font-size: 2.4rem; color: var(--gold); text-shadow: 0 2px 0 rgb(60 0 8 / 50%); margin-bottom: 2px; }
 .invite p { margin: 0; font-size: 1.05rem; }
+.invite .promise { margin: 16px auto 0; max-width: 300px; padding: 8px 10px; font-size: .84rem; line-height: 1.35; background: rgb(0 0 0 / 22%); border-radius: 6px; }
+.ending { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--gold-deep); font-size: .92rem; }
+.ending p { margin: 4px 0; color: var(--ink-soft); }
+.ending-links { display: flex; justify-content: center; gap: 18px; margin-top: 8px !important; }
 
 .letter {
   position: absolute; z-index: 5; left: 16px; right: 16px; top: 50%; max-width: 440px; margin: 0 auto;

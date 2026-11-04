@@ -35,6 +35,13 @@ const lifafa = (inner = '') => `<div class="lifafa">
   ${inner}
 </div>`;
 
+// Told only after the gift has arrived: the opening stays free of anything unfamiliar.
+const ending = `<div class="ending">
+    <b>This gift stayed private.</b>
+    <p>It was sent with Zcash, so the public record doesn't show who gave it or how much.</p>
+    <p class="ending-links"><a href="https://z.cash" target="_blank" rel="noreferrer noopener">What's Zcash?</a> <a href="./">Send a shagun</a></p>
+  </div>`;
+
 const paper = (body, cls = '') => `${mark}<section class="paper ${cls}">${body}</section>`;
 const notice = (title, text, extra = '') => paper(`${coin(undefined, 'small-coin')}<h1>${title}</h1><p>${text}</p>${extra}`, 'center');
 
@@ -102,7 +109,8 @@ const VIEWS = {
   open: ({ tier, message, from }) => `<div class="stage">
     ${mark}
     ${lifafa(`<button class="seal" data-open="1" aria-label="Open your gift">${coin()}</button>
-      <div class="invite"><h1>A shagun for you</h1>${from ? `<p class="from">From ${esc(from)}</p>` : ''}<p>Tap the coin to open</p></div>`)}
+      <div class="invite"><h1>A shagun for you</h1>${from ? `<p class="from">From ${esc(from)}</p>` : ''}<p>Tap the coin to open</p>
+        <p class="promise">zshagun never asks for your OTP, UPI PIN, bank details or password. If a page does, it's fake.</p></div>`)}
     <section class="letter" aria-label="Your gift">
       <p class="kicker">${from ? `From ${esc(from)}` : 'Someone is thinking of you'}</p>
       ${message ? `<blockquote>${esc(message)}</blockquote>` : ''}
@@ -125,7 +133,7 @@ const VIEWS = {
         <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="98765 43210" value="${esc(phoneText)}">
         <span class="fine hint">zshagun and Bitrefill see this number, to do the recharge. zshagun deletes it afterwards. Carriers take fees: a ₹10 recharge adds about ₹7.50 talktime.</span>
       </label>
-      <div class="dock">${error ? `<p class="error" role="alert">${esc(error)}</p>` : ''}<button class="gold" type="submit">Get it</button><p class="fine">You can only choose once.</p></div>
+      <div class="dock">${error ? `<p class="error" role="alert">${esc(error)}</p>` : ''}<button class="gold" type="submit">Get it</button><p class="fine">You can choose one thing, once. Whatever's left isn't saved for later.</p></div>
     </form>`);
   },
 
@@ -135,7 +143,8 @@ const VIEWS = {
     <p class="stamp">Done</p>
     <h1>${esc(product?.name)}</h1>
     <p class="sum-small">${esc(product?.label)}</p>
-    <p>On its way to your phone. Your carrier will send you a message.</p>
+    <p>On its way to your phone. Your balance should update in a minute or two.</p>
+    ${ending}
   </section>`,
 
   done_code: ({ product, code, pin, link, details, instructions, expires }) => `${mark}<section class="ticket">
@@ -149,6 +158,7 @@ const VIEWS = {
     ${expires ? `<p class="fine">Use it before ${esc(String(expires).slice(0, 10))}.</p>` : ''}
     <p class="fine">Save this now. We delete it after you tap below, and it can't be shown again.</p>
     <button class="gold" data-seen="1">I've saved it</button>
+    ${ending}
   </section>`,
 
   already_opened: () => notice('This gift has been opened', 'One link, one gift. If that wasn\'t you, ask the person who sent it.'),

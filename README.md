@@ -32,13 +32,13 @@ The giver picks an amount and an envelope, writes a note and pays from shielded 
 
 ## 3. Try it in 5 minutes
 
-**Without installing anything:** the video shows a full real run. Real links are in our Stadium submission, because each one spends real credits. Each works once, and choosing is final.
+**Without installing anything:** the video shows a full real run. To see the giver's side, open https://cryppit.github.io/zshagun/, pick a coin and an envelope, write a note and tap Seal it. Paying needs an NU7 testnet wallet, and today that means a developer tool.
 
-1. Open a gift link and tap the coin.
+Real gift links aren't posted here, because each one spends real credits and works once. Judges can ask the point person for one on demo day. With a link:
+
+1. Open it and tap the coin.
 2. Pick something. A gift card needs no phone number.
 3. You should see your recharge confirmed, or your card details. Save them before tapping "I've saved it".
-
-To give, open https://cryppit.github.io/zshagun/. Paying needs an NU7 testnet wallet, and today that means a developer tool.
 
 **Run it locally, in under a minute, with nothing to install:**
 
@@ -153,7 +153,7 @@ A recharge names a phone number, and that's usually a real person. A gift card k
   ```
 
 - **Code worth reading:** `web/gift.js` (two keys from one secret, so claiming doesn't reveal the note), `src/ledger.mjs` (the single atomic claim), `src/server.mjs` (after a purchase, anything that goes wrong ends in "needs a human", never a retry), `src/bitrefill.mjs` (reads every redemption field, tested on real replies).
-- **Built during the hack vs before:** all code was written on 4 November. The idea was planned before the event. Tools were set up beforehand.
+- **Built during the hack vs before:** all code was written on 4 November, from 11:00 IST. Before the hack: the idea, the plan, and tool setup (zcash-devtool built, testnet wallets made, test payments between them). None of our earlier projects' code is in this repo.
 - **Reusable parts:** the gift memo and key scheme in `web/gift.js`; the guardrail module; the Bitrefill notes in `FEEDBACK.md`.
 
 **How it works.** The link's `#fragment` holds a 32-byte secret `S`, and browsers don't send a fragment to any server. Claim token `T` = HKDF(S, "claim"), and gift id = SHA-256(T). The agent gets `T` only at claim time. The message key = HKDF(S, "message") never leaves the browser. The memo is text under 512 bytes: `SHG1|id|tier|refund address or -|locked note`.

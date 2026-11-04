@@ -58,7 +58,7 @@ root.addEventListener('click', async (e) => {
   if (b.dataset.go) show({ screen: b.dataset.go, error: null });
   if (b.dataset.reload) refresh();
   if (b.dataset.share) {
-    if (navigator.share) navigator.share({ title: 'A Shagun for you', url: b.dataset.share }).catch(() => {});
+    if (navigator.share) navigator.share({ title: 'A Shagun for you', text: 'A Shagun for you 🪔 Tap to open your gift:', url: b.dataset.share }).catch(() => {});
     else copy(b, b.dataset.share);
   }
   if (b.dataset.seen) {

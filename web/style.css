@@ -84,6 +84,7 @@ legend { padding: 0; margin-bottom: 8px; font-weight: 600; }
 
 .field { display: block; margin: 14px 0; font-weight: 600; }
 .field[hidden] { display: none; }
+.hint { display: block; margin-top: 6px; font-weight: 400; }
 textarea, input[name=refund], input[type=tel] {
   display: block; width: 100%; margin-top: 6px; padding: 12px; border-radius: 12px; font: inherit; font-weight: 400;
   color: var(--cream); background: rgb(0 0 0 / 24%); border: 1px solid rgb(255 244 224 / 30%);

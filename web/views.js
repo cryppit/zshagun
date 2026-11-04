@@ -46,6 +46,7 @@ const VIEWS = {
     <p class="amount">${taz(zat)} TAZ <span class="muted small">demo rate: 1 TAZ = ₹1,000</span></p>
     <button class="ghost" data-copy="${esc(uri)}">Copy payment link</button>
     <button class="primary" data-go="share">I've paid</button>
+    <p class="muted small"><b>Who can see this:</b> the public chain shows a private payment, not who, how much or the message. Shagun sees the amount and your refund address if you gave one, but not your name or message. Your wallet adds a small network fee.</p>
     <p class="muted small">Stay on this page. Your gift link comes next, and only this page has it.</p>`),
 
   share: ({ link }) => card(`
@@ -74,6 +75,7 @@ const VIEWS = {
       </div>
       <label class="field" id="phone-field">Phone number to recharge
         <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="98765 43210">
+        <span class="muted small hint">Shagun and Bitrefill see this number, to do the recharge. Shagun deletes it afterwards.</span>
       </label>
       ${error ? `<p class="error" role="alert">${esc(error)}</p>` : ''}
       <button class="primary" type="submit">Get it</button>

@@ -183,3 +183,23 @@ test('pay_screen_shows_the_exact_amount', () => {
   assert.match(screen({ screen: 'pay', zat: 1100000, uri: 'zcash:x', qr: '' }), /0\.011 TAZ/);
   assert.match(screen({ screen: 'pay', zat: 10100000, uri: 'zcash:x', qr: '' }), /0\.101 TAZ/);
 });
+
+test('recipient_is_told_who_sees_their_number', () => {
+  const html = screen({ screen: 'choosing', tier: 11, choices: [] });
+  assert.match(html, /Bitrefill/);
+  assert.match(html, /deletes it/);
+});
+
+test('pay_screen_says_who_can_see_what', () => {
+  const html = screen({ screen: 'pay', zat: 1100000, uri: 'zcash:x', qr: '' });
+  assert.match(html, /Who can see this/);
+  assert.match(html, /network fee/i);
+});
+
+test('page_has_full_preview_tags', async () => {
+  const { readFileSync } = await import('node:fs');
+  const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+  for (const tag of ['og:url', 'og:site_name', 'og:image:secure_url', 'og:image:width', 'og:image:height', 'og:image:type', 'og:image:alt']) {
+    assert.ok(html.includes(`"${tag}"`), tag);
+  }
+});

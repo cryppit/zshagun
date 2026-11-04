@@ -67,14 +67,18 @@ export function readInvoice(text) {
       failed: orders.some((o) => ['failed', 'refunded'].includes(o.status)),
     };
   }
-  // The invoice's own field is invoice_status; a bare status belongs to an order, unless it starts the line at the top level.
-  const top = text.match(/^invoice_status: *"?(\w+)/m)?.[1] ?? text.match(/^status: *"?(\w+)/m)?.[1] ?? null;
-  const orderStates = [...text.matchAll(/^\s+-?\s*status: *"?(\w+)/gm)].map((m) => m[1]);
-  const allDelivered = orderStates.length > 0 && orderStates.every((s) => s === 'delivered');
-  return {
-    state: allDelivered ? 'complete' : top, code: field(text, 'code'), pin: field(text, 'pin'), link: field(text, 'link'),
-    failed: orderStates.some((s) => ['failed', 'refunded'].includes(s)),
-  };
+  // TOON. Orders come either as a list or as a table with a header row, so both forms are read.
+  const top = text.match(/^\s*(?:- )?invoice_status: *"?(\w+)/m)?.[1] ?? text.match(/^status: *"?(\w+)/m)?.[1] ?? null;
+  const listed = [...text.matchAll(/^\s+-?\s*status: *"?(\w+)/gm)].map((m) => m[1]);
+  const table = text.match(/^\s*orders\[\d+\]\{([^}]*)\}:\n((?:\s+.+\n?)*)/m);
+  const cols = table?.[1].split(',') ?? [];
+  const rows = (table?.[2].trim().split('\n') ?? []).filter(Boolean).map((l) => l.trim().split(',').slice(-cols.length));
+  const tabled = rows.map((r) => r[cols.indexOf('status')]);
+  const refunded = rows.some((r) => r[cols.indexOf('refunded')] === 'true');
+  const states = [...listed, ...tabled];
+  const allDelivered = /orders_delivery_status: *"?all_delivered/.test(text) || (states.length > 0 && states.every((x) => x === 'delivered'));
+  const failed = refunded || states.some((x) => ['failed', 'refunded'].includes(x));
+  return { state: allDelivered ? 'complete' : top, code: field(text, 'code'), pin: field(text, 'pin'), link: field(text, 'link'), failed };
 }
 
 // Balances sit in BTC, USD and EUR sub-accounts. Product details show each one in rupees.

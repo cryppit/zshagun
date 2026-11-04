@@ -237,3 +237,26 @@ test('catalog_id_can_differ_from_the_bitrefill_slug', async () => {
   await createBitrefill(opts(client)).buy({ product: { id: 'vi-20', slug: 'vi-india', packageValue: '20' }, phone: null });
   assert.equal(client.calls[0].args.cart_items[0].product_id, 'vi-india');
 });
+
+const realList = (await import('node:fs')).readFileSync(new URL('./fixtures/list-invoices.txt', import.meta.url), 'utf8');
+
+test('reads_the_real_invoice_output', () => {
+  const r = readInvoice(realList);
+  assert.equal(r.state, 'complete');
+  assert.equal(r.failed, false);
+  assert.equal(r.code, null);
+});
+
+test('a_failed_order_in_table_form_is_seen', () => {
+  const text = 'invoice_status: payment_confirmed\norders[1]{product_id,product,value,currency,status,refunded}:\n  airtel-india,Airtel India 10 INR,"10",INR,failed,false';
+  assert.equal(readInvoice(text).failed, true);
+});
+
+test('a_refunded_order_in_table_form_is_seen', () => {
+  const text = 'invoice_status: complete\norders[1]{product_id,product,value,currency,status,refunded}:\n  airtel-india,Airtel India 10 INR,"10",INR,delivered,true';
+  assert.equal(readInvoice(text).failed, true);
+});
+
+test('all_delivered_status_counts_as_complete', () => {
+  assert.equal(readInvoice('invoice_status: payment_confirmed\norders_delivery_status: all_delivered').state, 'complete');
+});

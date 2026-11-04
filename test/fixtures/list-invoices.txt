@@ -1,0 +1,13 @@
+invoices[1]:
+  - invoice_id: 6f310da4-db18-4f03-9841-ae842d95f792
+    invoice_status: complete
+    orders_delivery_status: all_delivered
+    created_time: "2026-11-04T09:15:46.403Z"
+    all_orders_delivered_time: "2026-11-04T09:16:04.899Z"
+    payment_confirmed_time: "2026-11-04T09:15:47.906Z"
+    orders[1]{product_id,product,value,currency,status,refunded}:
+      airtel-india,Airtel India 10 INR,"10",INR,delivered,false
+count: 1
+page:
+  newest: "2026-11-04T09:15:46.403Z"
+  oldest: "2026-11-04T09:15:46.403Z"

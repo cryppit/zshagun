@@ -1,0 +1,6 @@
+{
+  "products": [
+    { "id": "dry-recharge", "name": "Phone recharge (dry run)", "kind": "recharge", "rupees": 10, "packageValue": "10", "needsPhone": true },
+    { "id": "dry-card", "name": "Gift card (dry run)", "kind": "card", "rupees": 10, "packageValue": "10", "needsPhone": false }
+  ]
+}

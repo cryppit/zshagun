@@ -1,0 +1,13 @@
+[Unit]
+Description=Shagun gift agent
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/fsh/shagun
+EnvironmentFile=%h/fsh/shagun.env
+ExecStart=/usr/bin/env node --disable-warning=ExperimentalWarning src/main.mjs
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -9,6 +9,17 @@ In India, *shagun* is the gift of money you give at Diwali and weddings. It trad
 - **Network:** Zcash NU7 testnet, shielded through unified addresses
 - **Built at:** Free Society Hack, Mumbai, 4 November 2026. The idea was planned before the event; all code here was written on 4 November.
 
+## Real results
+
+On 4 November, real shielded gifts on NU7 testnet triggered real purchases, paid from Bitrefill event credits:
+
+| What | Bitrefill invoice | Result |
+|---|---|---|
+| Airtel ₹10 recharge | `6f310da4-db18-4f03-9841-ae842d95f792` | Delivered in 18 seconds. ₹7.47 of talktime landed on a real SIM |
+| Flipkart ₹50 gift card | `1bd45cb0-dabe-4558-a8b1-116906d67f85` | Delivered in about 11 seconds, then redeemed in the Flipkart app |
+
+The first purchase crashed our agent after Bitrefill had taken payment. It didn't buy twice, because a claim is recorded before buying and is never retried. `FEEDBACK.md` has the story.
+
 ## The demo in five lines
 
 1. The giver picks ₹51 and writes a message. The browser locks the message and makes a secret link.
@@ -125,10 +136,12 @@ The agent serves both.
 
 ## Limits and gaps
 
-- Testnet coins are worthless, so the demo pays real goods from a Bitrefill balance. On mainnet, refilling that float is a public step and has to be batched.
+- Testnet coins are worthless, so the TAZ gift doesn't pay for the goods. The demo pays real goods from Bitrefill event credits. On mainnet, refilling that float is a public step and has to be batched.
 - The operator is trusted: it sees each claim, holds the float and could fail to deliver. This is custodial until a gift is claimed or refunded.
 - A link works like cash. Anyone who gets it can claim the gift.
 - A recharge names a phone number, and that's usually a real person. A gift card keeps it away from Bitrefill.
+- Carriers take fees: a ₹10 Airtel recharge added ₹7.47 of talktime.
+- Only Airtel and Flipkart have been tested with real purchases. Other brands may return different fields, so the page shows every field Bitrefill sends.
 - A quick-tunnel URL changes on restart, which breaks claims until `web/config.js` is updated.
 - A mainnet launch needs a check of the rules on reselling gift cards in India.
 - One confirmation is enough to fund a gift here. Mainnet should wait for more.

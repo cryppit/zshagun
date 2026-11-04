@@ -45,6 +45,13 @@ const app = createApp({
   origins: ['https://cryppit.github.io', 'http://localhost:8080'],
 });
 await app.recover();
+if (live) {
+  try {
+    log(`balance ₹${await bitrefill.balance()}`);
+  } catch (e) {
+    log(`balance check failed: ${e.message}`);
+  }
+}
 app.server.listen(port, '127.0.0.1', () => log(`shagun on :${port}, ${live ? 'LIVE' : 'dry run'}`));
 
 const ctx = { wallet, ledger, limits, now: Date.now, log, confirmations: 1, expireMs: 24 * 3600 * 1000 };

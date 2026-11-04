@@ -138,13 +138,15 @@ const VIEWS = {
     <p>On its way to your phone. Your carrier will send you a message.</p>
   </section>`,
 
-  done_code: ({ product, code, pin, link }) => `${mark}<section class="ticket">
+  done_code: ({ product, code, pin, link, details, instructions, expires }) => `${mark}<section class="ticket">
     <p class="stamp">Yours</p>
     <h1>${esc(product?.name)}</h1>
     <p class="sum-small">${esc(product?.label)}</p>
-    ${code ? `<p class="code">${esc(code)}</p><button class="ghost" data-copy="${esc(code)}">Copy code</button>` : ''}
-    ${pin ? `<p>PIN: <b>${esc(pin)}</b></p>` : ''}
+    ${(details?.length ? details : [code && { label: 'Code', value: code }, pin && { label: 'PIN', value: pin }].filter(Boolean)).map((d) => `
+      <div class="secret"><small>${esc(d.label)}</small><p class="code">${esc(d.value)}</p><button class="ghost small-btn" data-copy="${esc(d.value)}">Copy</button></div>`).join('')}
     ${link ? `<p><a href="${esc(link)}" target="_blank" rel="noreferrer noopener">Open your gift</a></p>` : ''}
+    ${instructions ? `<details class="how"><summary>How to use it</summary><p>${esc(instructions).replace(/\n/g, '<br>')}</p></details>` : ''}
+    ${expires ? `<p class="fine">Use it before ${esc(String(expires).slice(0, 10))}.</p>` : ''}
     <p class="fine">Save this now. We delete it after you tap below, and it can't be shown again.</p>
     <button class="gold" data-seen="1">I've saved it</button>
   </section>`,

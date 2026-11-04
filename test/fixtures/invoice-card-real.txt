@@ -1,0 +1,23 @@
+invoice_id: 00000000-0000-0000-0000-000000000000
+invoice_status: complete
+orders_delivery_status: all_delivered
+orders[1]:
+  - order_id: ORDER
+    product:
+      id: flipkart-india
+      name: Flipkart India 50 INR
+      value: "50"
+      currency: INR
+    status: delivered
+    payment_method: balance
+    refunded: false
+    access_link: "https://www.bitrefill.com/account/x#y"
+    redemption_available: true
+    redemption_info:
+      pin: AAAA1111BBBB2222
+      other: CCCC3333DDDD4444
+      instructions: "1. To redeem the gift card, visit https://www.flipkart.com/account/giftcard or download the app.\n2. Select 'Add a gift card.'\n3. Enter Flipkart's promotional code and activation pin."
+      expirationTime: "2027-11-04T00:00:00.000Z"
+      extraFields:
+        "PIN Code": 123456
+        "Link Code": 654321

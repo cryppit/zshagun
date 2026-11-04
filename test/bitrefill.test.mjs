@@ -104,7 +104,7 @@ test('reads_invoice_status_not_just_status', () => {
   const text = 'id: inv1\ninvoice_status: complete\norders[1]:\n  - id: o1\n    status: delivered\n    redemption_info:\n      code: ABC';
   const r = readInvoice(text);
   assert.equal(r.state, 'complete');
-  assert.equal(r.code, 'ABC');
+  assert.deepEqual(r.details, [{ label: 'Code', value: 'ABC' }]);
 });
 
 test('an_order_status_is_never_mistaken_for_the_invoice_status', () => {
@@ -150,17 +150,17 @@ test('paid_is_not_delivered', async () => {
 test('delivered_returns_code', async () => {
   const text = 'id: inv1\ninvoice_status: complete\norders[1]:\n  - id: o1\n    status: delivered\n    redemption_info:\n      code: ABCD-1234\n      pin: "77"';
   const client = fakeClient({ 'get-invoice-by-id': text });
-  assert.deepEqual(await createBitrefill(opts(client)).waitDelivered('inv1'), { status: 'delivered', code: 'ABCD-1234', pin: '77', link: null, accessLink: null });
+  assert.deepEqual(await createBitrefill(opts(client)).waitDelivered('inv1'), { status: 'delivered', details: [{ label: 'Code', value: 'ABCD-1234' }, { label: 'PIN', value: '77' }], link: null, accessLink: null, instructions: null, expires: null });
 });
 
 test('reads_a_json_invoice_too', () => {
   const r = readInvoice('{"status":"complete","orders":[{"status":"delivered","redemption_info":{"link":"https://x.test/r"}}]}');
-  assert.deepEqual(r, { state: 'complete', code: null, pin: null, link: 'https://x.test/r', accessLink: null, failed: false });
+  assert.deepEqual(r, { state: 'complete', details: [], link: 'https://x.test/r', accessLink: null, instructions: null, expires: null, failed: false });
 });
 
 test('recharge_has_no_code', async () => {
   const client = fakeClient({ 'get-invoice-by-id': 'invoice_status: complete' });
-  assert.deepEqual(await createBitrefill(opts(client)).waitDelivered('inv1'), { status: 'delivered', code: null, pin: null, link: null, accessLink: null });
+  assert.deepEqual(await createBitrefill(opts(client)).waitDelivered('inv1'), { status: 'delivered', details: [], link: null, accessLink: null, instructions: null, expires: null });
 });
 
 test('timeout_is_needs_human', async () => {
@@ -244,7 +244,7 @@ test('reads_the_real_invoice_output', () => {
   const r = readInvoice(realList);
   assert.equal(r.state, 'complete');
   assert.equal(r.failed, false);
-  assert.equal(r.code, null);
+  assert.deepEqual(r.details, []);
 });
 
 test('a_failed_order_in_table_form_is_seen', () => {
@@ -267,7 +267,7 @@ test('reads_a_real_single_invoice', () => {
   const r = readInvoice(realInvoice);
   assert.equal(r.state, 'complete');
   assert.equal(r.failed, false);
-  assert.equal(r.code, null);
+  assert.deepEqual(r.details, []);
   assert.equal(r.link, null);
   assert.equal(r.accessLink, 'https://www.bitrefill.com/account/x#y');
 });
@@ -282,4 +282,53 @@ test('waiting_hands_back_the_access_link', async () => {
   const r = await createBitrefill(opts(client)).waitDelivered('inv1');
   assert.equal(r.status, 'delivered');
   assert.equal(r.accessLink, 'https://www.bitrefill.com/account/x#y');
+});
+
+const realCard = (await import('node:fs')).readFileSync(new URL('./fixtures/invoice-card-real.txt', import.meta.url), 'utf8');
+
+test('every_redemption_field_of_a_real_card_is_kept', () => {
+  const r = readInvoice(realCard);
+  assert.deepEqual(r.details, [
+    { label: 'Card code', value: 'AAAA1111BBBB2222' },
+    { label: 'Card code 2', value: 'CCCC3333DDDD4444' },
+    { label: 'PIN Code', value: '123456' },
+    { label: 'Link Code', value: '654321' },
+  ]);
+});
+
+test('instructions_and_expiry_come_through', () => {
+  const r = readInvoice(realCard);
+  assert.match(r.instructions, /^1\. To redeem/);
+  assert.match(r.instructions, /\n2\. Select/);
+  assert.equal(r.expires, '2027-11-04T00:00:00.000Z');
+});
+
+test('a_value_sent_twice_shows_once', () => {
+  const r = readInvoice(realCard.replace('CCCC3333DDDD4444', 'AAAA1111BBBB2222'));
+  assert.deepEqual(r.details.map((d) => d.label), ['Card code', 'PIN Code', 'Link Code']);
+});
+
+test('a_short_pin_stays_a_pin', () => {
+  const r = readInvoice('invoice_status: complete\norders[1]:\n  - status: delivered\n    redemption_info:\n      code: ABCD-1234\n      pin: "77"');
+  assert.deepEqual(r.details, [{ label: 'Code', value: 'ABCD-1234' }, { label: 'PIN', value: '77' }]);
+});
+
+test('json_invoices_keep_every_field_too', () => {
+  const r = readInvoice(JSON.stringify({ invoice_status: 'complete', orders: [{ status: 'delivered', redemption_info: { pin: 'AAAA1111BBBB2222', extraFields: { 'PIN Code': '123456' }, instructions: 'Do it' } }] }));
+  assert.deepEqual(r.details, [{ label: 'Card code', value: 'AAAA1111BBBB2222' }, { label: 'PIN Code', value: '123456' }]);
+  assert.equal(r.instructions, 'Do it');
+});
+
+test('waiting_hands_back_every_field', async () => {
+  const client = fakeClient({ 'get-invoice-by-id': realCard });
+  const r = await createBitrefill(opts(client)).waitDelivered('inv1');
+  assert.equal(r.details.length, 4);
+  assert.match(r.instructions, /redeem/);
+});
+
+test('card_details_are_never_logged', async () => {
+  const lines = [];
+  const client = fakeClient({ 'get-invoice-by-id': realCard });
+  await createBitrefill(opts(client, { log: (l) => lines.push(l) })).waitDelivered('inv1');
+  for (const secret of ['AAAA1111', 'CCCC3333', '123456', '654321']) assert.ok(!lines.join('\n').includes(secret), secret);
 });

@@ -222,6 +222,11 @@ h1.on-red { color: var(--gold); }
   border: 3px double var(--sindoor); border-radius: 6px; transform: rotate(-6deg);
   animation: stamp .45s .35s cubic-bezier(.3, 1.6, .5, 1) both;
 }
+.secret { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; margin: 10px 0; text-align: left; }
+.secret small { grid-column: 1 / -1; color: var(--ink-soft); font-weight: 600; }
+.secret .code { margin: 0; padding: 9px 8px; font-size: 1.02rem; }
+.small-btn { width: auto; min-height: 44px; margin: 0; padding: 6px 12px; font-size: .92rem; }
+.how { text-align: left; font-size: .9rem; overflow-wrap: anywhere; }
 .code { padding: 14px 10px; margin: 12px 0 4px; font: 700 1.3rem/1.35 ui-monospace, Menlo, monospace; color: var(--sindoor-dark); background: #fff; border: 1.5px dashed var(--gold-deep); overflow-wrap: anywhere; user-select: all; }
 
 .petal {

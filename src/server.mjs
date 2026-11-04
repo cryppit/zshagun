@@ -80,11 +80,11 @@ export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey
       log(`gift ${short(id)} needs a human`);
       return;
     }
-    const { code, pin } = result;
+    const details = result.details ?? [];
     // Some cards have their code only on the order's own page, so that page is what the recipient gets.
     const isCard = products().find((p) => p.id === ledger.get(id).product_id)?.kind === 'card';
-    const link = result.link ?? (isCard && !code && !pin ? result.accessLink ?? null : null);
-    const secret = code || pin || link ? JSON.stringify({ code, pin, link }) : null;
+    const link = result.link ?? (isCard && !details.length ? result.accessLink ?? null : null);
+    const secret = details.length || link ? JSON.stringify({ details, link, instructions: result.instructions, expires: result.expires }) : null;
     ledger.setState(id, 'delivered', { code: secret, delivered_at: now() });
     if (!secret) ledger.forget(id);
     else ledger.setState(id, 'delivered', { phone: null });

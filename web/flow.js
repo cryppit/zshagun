@@ -32,9 +32,9 @@ async function call(api, path, init) {
 const down = { screen: 'service_down' };
 
 function fromClaim(body) {
-  const { state, code, pin, link, product } = body;
+  const { state, code, pin, link, details, instructions, expires, product } = body;
   if (state === 'delivered') {
-    if (code || pin || link) return { screen: 'done_code', code, pin, link, product };
+    if (code || pin || link || details?.length) return { screen: 'done_code', code, pin, link, details, instructions, expires, product };
     return { screen: product?.kind === 'recharge' ? 'done_recharge' : 'already_opened', product };
   }
   if (state === 'buying') return { screen: 'buying', product };

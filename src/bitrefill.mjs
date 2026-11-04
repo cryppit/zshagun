@@ -48,10 +48,54 @@ export function createMcpClient({ url, token, fetch = globalThis.fetch }) {
   };
 }
 
-const field = (text, name) => {
-  const m = text.match(new RegExp(`^[\\s-]*${name}: *"?(.+?)"?\\s*$`, 'm'));
-  return m ? m[1] : null;
-};
+// What a card needs differs by brand: Flipkart sends pin, other and extraFields, others send code.
+// So everything in redemption_info is kept with its label, and the recipient sees all of it.
+const NOT_SECRETS = ['instructions', 'expirationTime', 'expiration_date', 'link', 'barcode_format', 'barcode_value', 'extraFields', 'extra_fields'];
+
+function labelFor(key, value, used) {
+  let base = key;
+  if (['code', 'pin', 'other'].includes(key)) {
+    if (String(value).length >= 10) base = 'Card code';
+    else base = key === 'pin' ? 'PIN' : 'Code';
+  }
+  const n = used.filter((l) => l === base || l.startsWith(`${base} `)).length;
+  return n ? `${base} ${n + 1}` : base;
+}
+
+function fromRedemption(top, extra) {
+  const details = [];
+  const add = (label, value) => { if (value !== null && value !== undefined && value !== '' && !details.some((d) => d.value === String(value))) details.push({ label, value: String(value) }); };
+  for (const [k, v] of Object.entries(top)) {
+    if (!NOT_SECRETS.includes(k) && typeof v !== 'object') add(labelFor(k, v, details.map((d) => d.label)), v);
+  }
+  for (const [k, v] of Object.entries(extra)) add(k, v);
+  return {
+    details, link: top.link ?? null, instructions: top.instructions ?? null, expires: top.expirationTime ?? top.expiration_date ?? null,
+  };
+}
+
+function toonRedemption(text) {
+  const lines = text.split('\n');
+  const at = lines.findIndex((l) => /^\s*(?:- )?redemption_info:\s*$/.test(l));
+  if (at < 0) return fromRedemption({}, {});
+  const depth = lines[at].search(/\S/);
+  const top = {};
+  const extra = {};
+  let inExtra = null;
+  for (const line of lines.slice(at + 1)) {
+    const indent = line.search(/\S/);
+    if (indent <= depth) break;
+    const m = line.trim().match(/^"?([^":]+)"?:\s*(.*)$/);
+    if (!m) continue;
+    const [, key, raw] = m;
+    if (inExtra !== null && indent <= inExtra) inExtra = null;
+    if (['extraFields', 'extra_fields'].includes(key) && !raw) { inExtra = indent; continue; }
+    const value = raw.replace(/^"(.*)"$/, '$1').replace(/\\n/g, '\n').replace(/\\"/g, '"');
+    if (inExtra !== null) extra[key] = value;
+    else top[key] = value;
+  }
+  return fromRedemption(top, extra);
+}
 
 // Read tools answer in TOON, a YAML-like text. Only these few fields matter here.
 export function readInvoice(text) {
@@ -63,7 +107,7 @@ export function readInvoice(text) {
     const r = orders.find((o) => o.redemption_info)?.redemption_info ?? {};
     const allDelivered = orders.length > 0 && orders.every((o) => o.status === 'delivered');
     return {
-      state: allDelivered ? 'complete' : (inv.invoice_status ?? inv.status), code: r.code ?? null, pin: r.pin ?? null, link: r.link ?? null,
+      state: allDelivered ? 'complete' : (inv.invoice_status ?? inv.status), ...fromRedemption(r, r.extraFields ?? r.extra_fields ?? {}),
       accessLink: orders.find((o) => o.access_link)?.access_link ?? null,
       failed: orders.some((o) => ['failed', 'refunded'].includes(o.status)),
     };
@@ -79,7 +123,8 @@ export function readInvoice(text) {
   const states = [...listed, ...tabled];
   const allDelivered = /orders_delivery_status: *"?all_delivered/.test(text) || (states.length > 0 && states.every((x) => x === 'delivered'));
   const failed = refunded || states.some((x) => ['failed', 'refunded'].includes(x));
-  return { state: allDelivered ? 'complete' : top, code: field(text, 'code'), pin: field(text, 'pin'), link: field(text, 'link'), accessLink: field(text, 'access_link'), failed };
+  const accessLink = text.match(/^\s*access_link: *"?([^"\s]+)/m)?.[1] ?? null;
+  return { state: allDelivered ? 'complete' : top, ...toonRedemption(text), accessLink, failed };
 }
 
 // Balances sit in BTC, USD and EUR sub-accounts. Product details show each one in rupees.
@@ -147,7 +192,7 @@ export function createBitrefill({
         }
         if (inv?.state === 'complete') {
           log(`bitrefill invoice ${invoiceId} delivered`);
-          return { status: 'delivered', code: inv.code, pin: inv.pin, link: inv.link, accessLink: inv.accessLink };
+          return { status: 'delivered', details: inv.details, link: inv.link, accessLink: inv.accessLink, instructions: inv.instructions, expires: inv.expires };
         }
         await sleep(pollMs);
       }
@@ -164,6 +209,6 @@ export function createDryBitrefill({ balance = 1000, log = () => {} } = {}) {
     balance: async () => balance,
     quote: async (product) => ({ rupees: product.rupees, balance, inStock: true }),
     buy: async ({ product }) => { log(`dry run: would buy ${product.id}`); return `dry-${++n}`; },
-    waitDelivered: async () => ({ status: 'delivered', code: 'DRY-RUN-NOT-A-REAL-CODE', pin: null, link: null }),
+    waitDelivered: async () => ({ status: 'delivered', details: [{ label: 'Code', value: 'DRY-RUN-NOT-A-REAL-CODE' }], link: null, instructions: null, expires: null }),
   };
 }

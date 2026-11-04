@@ -303,3 +303,28 @@ test('a_refused_gift_keeps_everything_the_giver_typed', () => {
 test('recipients_are_told_a_recharge_loses_some_to_fees', () => {
   assert.match(screen({ screen: 'choosing', tier: 11, choices: [] }), /about ₹7\.50/);
 });
+
+test('a_card_shows_every_field_with_its_own_copy_button', () => {
+  const details = [{ label: 'Card code', value: 'AAAA1111' }, { label: 'PIN Code', value: '123456' }];
+  const html = screen({ screen: 'done_code', details, product: { name: 'Flipkart', label: '₹50 gift card' }, instructions: 'Add it <here>', expires: '2027-11-04T00:00:00.000Z' });
+  for (const d of details) {
+    assert.ok(html.includes(d.label));
+    assert.ok(html.includes(`data-copy="${d.value}"`));
+  }
+  assert.ok(html.includes('Add it &lt;here&gt;'));
+  assert.match(html, /2027/);
+});
+
+test('poll_passes_every_card_field_through', async () => {
+  const details = [{ label: 'PIN Code', value: '1' }];
+  const r = await pollClaim(newSecret(), api(() => json(200, { state: 'delivered', details, instructions: 'x', product: { kind: 'card' } })));
+  assert.equal(r.screen, 'done_code');
+  assert.deepEqual(r.details, details);
+  assert.equal(r.instructions, 'x');
+});
+
+test('a_gift_saved_in_the_old_format_still_shows', () => {
+  const html = screen({ screen: 'done_code', code: 'OLD-1', pin: '77', product: {} });
+  assert.ok(html.includes('OLD-1'));
+  assert.ok(html.includes('77'));
+});

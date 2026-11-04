@@ -20,7 +20,7 @@ test('demo_runs_the_whole_flow_with_nothing_installed', async (t) => {
   await demo.settled();
   const done = await (await fetch(`${demo.api}/claim/${id}`, { headers: { 'x-shagun-token': token } })).json();
   assert.equal(done.state, 'delivered');
-  assert.match(done.code, /DRY-RUN/);
+  assert.match(done.details[0].value, /DRY-RUN/);
 });
 
 test('demo_serves_the_page_pointed_at_itself', async (t) => {

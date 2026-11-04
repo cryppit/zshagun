@@ -22,7 +22,7 @@ function fakeBitrefill(over = {}) {
     bought,
     quote: async (p) => ({ rupees: p.rupees, balance: 1000, inStock: true }),
     buy: async (o) => { bought.push(o); return `inv${bought.length}`; },
-    waitDelivered: async () => ({ status: 'delivered', code: 'CODE-1', pin: null, link: null }),
+    waitDelivered: async () => ({ status: 'delivered', details: [{ label: 'Code', value: 'CODE-1' }], link: null, instructions: 'Use it', expires: null }),
     ...over,
   };
 }
@@ -89,7 +89,8 @@ test('claim_then_result', async (t) => {
   await s.app.settled();
   const c = await (await s.status()).json();
   assert.equal(c.state, 'delivered');
-  assert.equal(c.code, 'CODE-1');
+  assert.deepEqual(c.details, [{ label: 'Code', value: 'CODE-1' }]);
+  assert.equal(c.instructions, 'Use it');
 });
 
 test('double_claim_one_purchase', async (t) => {
@@ -195,7 +196,7 @@ test('a_ledger_failure_after_buying_never_crashes_the_agent', async (t) => {
 });
 
 test('a_card_with_no_code_falls_back_to_its_order_link', async (t) => {
-  const s = await start({ bitrefill: fakeBitrefill({ waitDelivered: async () => ({ status: 'delivered', code: null, pin: null, link: null, accessLink: 'https://b.test/o#k' }) }) });
+  const s = await start({ bitrefill: fakeBitrefill({ waitDelivered: async () => ({ status: 'delivered', details: [], link: null, accessLink: 'https://b.test/o#k' }) }) });
   t.after(s.stop);
   await s.claim();
   await s.app.settled();
@@ -203,7 +204,7 @@ test('a_card_with_no_code_falls_back_to_its_order_link', async (t) => {
 });
 
 test('a_recharge_never_shows_an_order_link', async (t) => {
-  const s = await start({ bitrefill: fakeBitrefill({ waitDelivered: async () => ({ status: 'delivered', code: null, pin: null, link: null, accessLink: 'https://b.test/o#k' }) }) });
+  const s = await start({ bitrefill: fakeBitrefill({ waitDelivered: async () => ({ status: 'delivered', details: [], link: null, accessLink: 'https://b.test/o#k' }) }) });
   t.after(s.stop);
   await s.claim({ productId: 'airtel', phone: await sealPhone(key.publicJwk, PHONE) });
   await s.app.settled();
@@ -224,11 +225,11 @@ test('code_stays_until_seen_then_is_wiped', async (t) => {
   const s = await start(); t.after(s.stop);
   await s.claim();
   await s.app.settled();
-  assert.equal((await (await s.status()).json()).code, 'CODE-1');
-  assert.equal((await (await s.status()).json()).code, 'CODE-1');
+  assert.equal((await (await s.status()).json()).details[0].value, 'CODE-1');
+  assert.equal((await (await s.status()).json()).details[0].value, 'CODE-1');
   const ack = await fetch(`${s.base}/claim/${s.id}/seen`, { method: 'POST', headers: { 'x-shagun-token': s.token } });
   assert.equal(ack.status, 204);
-  assert.equal((await (await s.status()).json()).code, undefined);
+  assert.equal((await (await s.status()).json()).details, undefined);
   assert.equal(s.ledger.get(s.id).code, null);
 });
 

@@ -289,10 +289,10 @@ const realCard = (await import('node:fs')).readFileSync(new URL('./fixtures/invo
 test('every_redemption_field_of_a_real_card_is_kept', () => {
   const r = readInvoice(realCard);
   assert.deepEqual(r.details, [
-    { label: 'Card code', value: 'AAAA1111BBBB2222' },
-    { label: 'Card code 2', value: 'CCCC3333DDDD4444' },
+    { label: 'Card number', value: 'AAAA1111BBBB2222' },
     { label: 'PIN Code', value: '123456' },
     { label: 'Link Code', value: '654321' },
+    { label: 'Other code (you may not need this)', value: 'CCCC3333DDDD4444' },
   ]);
 });
 
@@ -305,7 +305,7 @@ test('instructions_and_expiry_come_through', () => {
 
 test('a_value_sent_twice_shows_once', () => {
   const r = readInvoice(realCard.replace('CCCC3333DDDD4444', 'AAAA1111BBBB2222'));
-  assert.deepEqual(r.details.map((d) => d.label), ['Card code', 'PIN Code', 'Link Code']);
+  assert.deepEqual(r.details.map((d) => d.label), ['Card number', 'PIN Code', 'Link Code']);
 });
 
 test('a_short_pin_stays_a_pin', () => {
@@ -315,7 +315,7 @@ test('a_short_pin_stays_a_pin', () => {
 
 test('json_invoices_keep_every_field_too', () => {
   const r = readInvoice(JSON.stringify({ invoice_status: 'complete', orders: [{ status: 'delivered', redemption_info: { pin: 'AAAA1111BBBB2222', extraFields: { 'PIN Code': '123456' }, instructions: 'Do it' } }] }));
-  assert.deepEqual(r.details, [{ label: 'Card code', value: 'AAAA1111BBBB2222' }, { label: 'PIN Code', value: '123456' }]);
+  assert.deepEqual(r.details, [{ label: 'Card number', value: 'AAAA1111BBBB2222' }, { label: 'PIN Code', value: '123456' }]);
   assert.equal(r.instructions, 'Do it');
 });
 

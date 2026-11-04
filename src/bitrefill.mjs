@@ -52,10 +52,11 @@ export function createMcpClient({ url, token, fetch = globalThis.fetch }) {
 // So everything in redemption_info is kept with its label, and the recipient sees all of it.
 const NOT_SECRETS = ['instructions', 'expirationTime', 'expiration_date', 'link', 'barcode_format', 'barcode_value', 'extraFields', 'extra_fields'];
 
+// Learned from a real Flipkart card: the long `pin` is the card number, the 6-digit "PIN Code" is the PIN, and `other` wasn't needed.
 function labelFor(key, value, used) {
   let base = key;
-  if (['code', 'pin', 'other'].includes(key)) {
-    if (String(value).length >= 10) base = 'Card code';
+  if (['code', 'pin'].includes(key)) {
+    if (String(value).length >= 10) base = 'Card number';
     else base = key === 'pin' ? 'PIN' : 'Code';
   }
   const n = used.filter((l) => l === base || l.startsWith(`${base} `)).length;
@@ -66,9 +67,10 @@ function fromRedemption(top, extra) {
   const details = [];
   const add = (label, value) => { if (value !== null && value !== undefined && value !== '' && !details.some((d) => d.value === String(value))) details.push({ label, value: String(value) }); };
   for (const [k, v] of Object.entries(top)) {
-    if (!NOT_SECRETS.includes(k) && typeof v !== 'object') add(labelFor(k, v, details.map((d) => d.label)), v);
+    if (!NOT_SECRETS.includes(k) && k !== 'other' && typeof v !== 'object') add(labelFor(k, v, details.map((d) => d.label)), v);
   }
   for (const [k, v] of Object.entries(extra)) add(k, v);
+  add('Other code (you may not need this)', top.other);
   return {
     details, link: top.link ?? null, instructions: top.instructions ?? null, expires: top.expirationTime ?? top.expiration_date ?? null,
   };

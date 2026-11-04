@@ -4,7 +4,13 @@ From building zshagun at Free Society Hack, 4 November 2026. Everything here hap
 
 ## In my own words
 
-<!-- The founder writes this part. -->
+The moment I'll remember is my first real ₹10 recharge. My own page told me "zshagun isn't answering". At the same time my inbox had Bitrefill's email saying they'd received my payment. So the money had moved, and nothing on my side knew about it. I didn't know if the recharge had gone through or if I'd been charged twice. I dialled `*123#` and the SIM had ₹7.47 on it. No SMS ever came. Only then did I know it worked, and that ₹10 doesn't land as ₹10.
+
+The Flipkart card was the same kind of problem. My page showed one value, labelled PIN, and Flipkart's form wanted two. The values were there on the order, but nothing said which two a person actually types. There were four to choose from, and two of them were the same number. It took us a while, and in the end the Flipkart app itself told us which pair was right. If a person who isn't a developer got that screen, they'd have given up.
+
+Both of these were partly my fault, because I built against what the docs said and only found out what's really sent by spending real credits. But that's my main feedback: for an agent that spends real money, one real example reply on the docs page would have saved me both problems.
+
+What I liked: delivery is really fast, 11 to 22 seconds. Getting $25 of credits from the team at the venue was easy. And the warning never to retry a purchase is the reason my crash cost me nothing extra. One purchase, one charge.
 
 ## Bitrefill: what broke, in the order it hit us
 

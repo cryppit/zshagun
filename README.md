@@ -33,6 +33,9 @@ The memo is text, under 512 bytes: `SHG1|id|tier|refund address or -|locked mess
 
 **Gift states:** seen, mined, confirmed, claimed, buying, delivered. Or: refused, expired, refunded, needs a human.
 
+**How the agent shops:** it asks Bitrefill what each allowed brand sells today, every 30 minutes, and keeps what fits under the cap. So the choices a recipient
+sees are live, and a gift offers only what it can really buy.
+
 **What stops a double purchase:** one SQL update moves a gift from `confirmed` to `claimed`, and only one caller can win it. That
 happens before anything is bought. A purchase is one call and is never retried, because Bitrefill warns that a second try after an unclear
 failure can charge twice. If the agent stops after claiming and before it has an invoice, restart marks the gift "needs a human". If it
@@ -43,7 +46,8 @@ already has an invoice, restart goes back to polling that invoice.
 The agent spends only inside limits that sit in code and config. There is no approval path around them.
 
 - At most **₹101 per gift** and **₹300 a day**, counted at the real price. A balance floor can be set too.
-- Only products in `catalog.json`, and a choice must cost no more than the gift.
+- Only brands on the allowlist in `catalog.json`, and a choice must cost no more than the gift.
+- The price is read from Bitrefill right before each purchase, because the purchase call carries no price. If it has risen past the gift, the agent stops.
 - Each gift buys once. A crash ends in "needs a human", never a retry.
 - `POST /claim` is rate limited per IP, in memory.
 - Live buying is off unless `SHAGUN_LIVE=1`. Without it, the agent runs the whole flow and buys nothing.
@@ -65,31 +69,38 @@ The agent spends only inside limits that sit in code and config. There is no app
 
 The giver's payment and the purchase share no public transaction, because the agent buys from a prepaid balance.
 
-## Run your own
+## Run it
 
-You need Node 22.13 or later and [zcash-devtool](https://github.com/zcash/zcash-devtool) built with two testnet wallets, one for the agent.
+**Under a minute, nothing to install.** You need Node 22.13 or later. zshagun has no npm dependencies.
 
 ```bash
 git clone https://github.com/cryppit/zshagun && cd zshagun
-npm test                     # no install step: zshagun has no npm dependencies
-SHAGUN_HOME=~/fsh npm start  # dry run on :8791, buys nothing
+npm test
+npm run demo
 ```
 
-You should see `shagun on :8791, dry run`. `SHAGUN_HOME` must hold `zcash-devtool/target/release/zcash-devtool`, `wallets/receiver` and
-`wallets/receiver.age`.
+`npm run demo` prints a gift link. Open it, tap the coin, pick something and watch the agent work. The wallet and Bitrefill are stand-ins here, so it buys
+nothing and the code it shows isn't real. Everything else is the real code. Ports 8080 and 8791 must be free.
 
-To serve the page, run `npx serve web -l 8080`, or any static server, and open http://localhost:8080. Set `web/config.js` to your agent's URL and
-wallet address. To reach it from a phone, run `cloudflared tunnel --url http://localhost:8791`, then `scripts/set-tunnel.sh`.
+**The real thing, about 30 minutes,** most of it building the wallet tool.
 
-To buy for real, put `BITREFILL_API_KEY=…` in a file outside the repo and start with `SHAGUN_LIVE=1`. `scripts/peek.mjs` is a read-only look
-at your balance and the catalog.
+1. Build [zcash-devtool](https://github.com/zcash/zcash-devtool) and make a testnet wallet for the agent. Put them in `SHAGUN_HOME` (default `~/fsh`) as
+   `zcash-devtool/target/release/zcash-devtool`, `wallets/receiver` and `wallets/receiver.age`.
+2. Set your agent's wallet address in `web/config.js`, and put `BITREFILL_API_KEY=…` in `shagun.env`, next to the repo.
+3. `scripts/agent.sh dry` starts the agent on :8791, buying nothing. You should see `zshagun on :8791, dry run`.
+4. To reach it from a phone, run `cloudflared tunnel --url http://localhost:8791 > ~/fsh/tunnel.log 2>&1`, then `scripts/set-tunnel.sh`, then publish `web/`.
+5. `scripts/agent.sh live` buys for real, from your Bitrefill balance.
+
+`scripts/find-products.mjs` is a read-only look at what the agent can buy today. `scripts/make-gift.mjs 11 "Happy Diwali"` pays a gift from a second wallet
+and prints its link.
 
 ## Built and reused
 
 **Built here:** the gift memo, link and key scheme, claim flow, guardrails, ledger, watcher, Bitrefill client and page.
 
-**Reused:** zcash-devtool (wallet), the Bitrefill eCommerce MCP server (`get-product-details`, `buy-products`, `get-invoice-by-id`, `get-balances`),
-Cloudflare quick tunnels, GitHub Pages, and [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) (MIT, in `web/vendor`).
+**Reused:** zcash-devtool (wallet), the Bitrefill eCommerce MCP server (`get-product-details`, `buy-products`, `get-invoice-by-id`), Cloudflare quick tunnels,
+GitHub Pages, [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) (MIT, in `web/vendor`), and the Rozha One and Hind fonts by Indian Type Foundry
+(SIL Open Font License, in `web/fonts`).
 
 **Which track uses what.** Zcash: the shielded gift, locked message, refunds and notes by memo, the privacy design. Bitrefill: purchase, delivery, guardrails.
 The agent serves both.
@@ -101,7 +112,8 @@ The agent serves both.
 - **Two keys from one secret,** so claiming a gift doesn't hand over the message.
 - **A prepaid float instead of a swap per gift.** It breaks the public link between giver and purchase, and a claim takes seconds.
 - **No AI model reads claims.** The agent is rules and limits, so no model provider ever sees a phone number.
-- **No third-party scripts on the page,** because it holds a secret. A Content-Security-Policy enforces that.
+- **No third-party scripts or fonts on the page,** because it holds a secret. A Content-Security-Policy enforces that.
+- **A sealed lifafa, not a dashboard.** A shagun is an envelope with a coin on it. A sealed envelope is also the plainest way to show what shielded means.
 - **zcash-devtool as the wallet,** because it speaks NU7 today. It is not production software.
 
 ## Limits and gaps

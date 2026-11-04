@@ -9,6 +9,8 @@ In India, *shagun* is the gift of money you give at Diwali and weddings. It trad
 - **Network:** Zcash NU7 testnet, shielded through unified addresses
 - **Built at:** Free Society Hack, Mumbai, 4 November 2026. The idea was planned before the event; all code here was written on 4 November.
 
+**Tracks.** Entered in both. Privacy (Zcash): themes 2 and 1. Agentic Commerce (Bitrefill): lane 2, Gift on claim, and lane 5, Private by default.
+
 ## Real results
 
 On 4 November, real shielded gifts on NU7 testnet triggered real purchases, paid from Bitrefill event credits:

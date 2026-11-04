@@ -82,7 +82,7 @@ test('message_is_escaped', async () => {
 test('service_down_names_the_service', async () => {
   const s = await loadGift(`#${newSecret()}`, api(() => { throw new TypeError('failed'); }));
   assert.equal(s.screen, 'service_down');
-  assert.match(screen(s), /Shagun/);
+  assert.match(screen(s), /zshagun/);
   assert.match(screen(s), /safe/i);
 });
 

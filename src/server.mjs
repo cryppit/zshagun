@@ -63,7 +63,7 @@ export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey
     const rest = Math.round(gift.zat - gift.rupees * ZAT_PER_RUPEE - REFUND_FEE_ZAT);
     try {
       const txid = await wallet.send({
-        address: gift.refund_to, zat: Math.max(rest, REFUND_FEE_ZAT), memo: 'Your Shagun was opened. Anything left over is in this payment.',
+        address: gift.refund_to, zat: Math.max(rest, REFUND_FEE_ZAT), memo: 'Your shagun was opened. Anything left over is in this payment.',
       });
       ledger.setState(id, 'delivered', { opened_txid: txid });
       log(`gift ${short(id)} giver told`);

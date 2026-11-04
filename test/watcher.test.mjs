@@ -99,7 +99,7 @@ test('expired_refunds_once', async () => {
   await watch(ctx);
   assert.equal(ctx.ledger.get(ID).state, 'refunded');
   assert.equal(sent.length, 1);
-  assert.match(sent[0].memo, /Shagun/);
+  assert.match(sent[0].memo, /shagun/);
 });
 
 test('no_refund_address_stays_expired', async () => {

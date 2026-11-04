@@ -12,10 +12,11 @@ function show(next) {
   state = { ...state, ...next };
   clearTimeout(timer);
   root.innerHTML = screen(state);
-  root.querySelector('h1')?.focus?.();
   syncPhoneField();
   if (state.screen === 'on_its_way') timer = setTimeout(refresh, 10000);
   if (state.screen === 'buying') timer = setTimeout(poll, 2000);
+  if (state.screen === 'done_code' || state.screen === 'done_recharge') shower();
+  window.scrollTo(0, 0);
 }
 
 async function refresh() {
@@ -51,14 +52,39 @@ async function copy(button, text) {
   setTimeout(() => { button.textContent = label; }, 1800);
 }
 
+const PETALS = ['#f08a12', '#f7c948', '#e8590c', '#fff3bf', '#d9232f'];
+
+function shower() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for (let i = 0; i < 34; i++) {
+    const p = document.createElement('i');
+    const set = (k, v) => p.style.setProperty(k, v);
+    p.className = 'petal';
+    set('--x', `${Math.random() * 100}vw`);
+    set('--s', `${9 + Math.random() * 10}px`);
+    set('--c', PETALS[i % PETALS.length]);
+    set('--d', `${2.4 + Math.random() * 2.2}s`);
+    set('--w', `${0.5 + Math.random() * 1.1}s`);
+    set('--dx', `${(Math.random() - 0.5) * 160}px`);
+    set('--r', `${(Math.random() - 0.5) * 900}deg`);
+    p.addEventListener('animationend', () => p.remove());
+    document.body.append(p);
+  }
+}
+
 root.addEventListener('click', async (e) => {
   const b = e.target.closest('button');
   if (!b) return;
+  if (b.dataset.open) {
+    navigator.vibrate?.(25);
+    root.querySelector('.stage').classList.add('is-open');
+    shower();
+  }
   if (b.dataset.copy) copy(b, b.dataset.copy);
   if (b.dataset.go) show({ screen: b.dataset.go, error: null });
   if (b.dataset.reload) refresh();
   if (b.dataset.share) {
-    if (navigator.share) navigator.share({ title: 'A Shagun for you', text: 'A Shagun for you 🪔 Tap to open your gift:', url: b.dataset.share }).catch(() => {});
+    if (navigator.share) navigator.share({ title: 'A shagun for you', text: 'A shagun for you. Tap to open your gift:', url: b.dataset.share }).catch(() => {});
     else copy(b, b.dataset.share);
   }
   if (b.dataset.seen) {

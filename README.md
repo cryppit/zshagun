@@ -1,11 +1,11 @@
-# Shagun
+# zshagun
 
 **Send a private gift from shielded Zcash as a link.** The person you love taps it, picks a phone recharge or gift card,
 and gets it, with no wallet, no app and no account, and no public record linking the two of you.
 
 In India, *shagun* is the gift of money you give at Diwali and weddings. It traditionally ends in 1, so gifts here are ₹11, ₹51 or ₹101.
 
-- **Page:** https://cryppit.github.io/shagun/
+- **Page:** https://cryppit.github.io/zshagun/
 - **Network:** Zcash NU7 testnet, shielded through unified addresses
 - **Built at:** Free Society Hack, Mumbai, 4 November 2026. The idea was planned before the event; all code here was written on 4 November.
 
@@ -70,8 +70,8 @@ The giver's payment and the purchase share no public transaction, because the ag
 You need Node 22.13 or later and [zcash-devtool](https://github.com/zcash/zcash-devtool) built with two testnet wallets, one for the agent.
 
 ```bash
-git clone https://github.com/cryppit/shagun && cd shagun
-npm test                     # no install step: Shagun has no npm dependencies
+git clone https://github.com/cryppit/zshagun && cd zshagun
+npm test                     # no install step: zshagun has no npm dependencies
 SHAGUN_HOME=~/fsh npm start  # dry run on :8791, buys nothing
 ```
 

@@ -17,7 +17,7 @@ const wallet = createWallet({
   identity: join(fsh, 'wallets/payer.age'),
 });
 const gift = await makeGift({
-  tier, message, refundTo: payerAddress, agentAddress: config.agentAddress, pageUrl: 'https://cryppit.github.io/shagun/',
+  tier, message, refundTo: payerAddress, agentAddress: config.agentAddress, pageUrl: 'https://cryppit.github.io/zshagun/',
 });
 await wallet.refresh();
 const txid = await wallet.send({ address: config.agentAddress, zat: gift.zat, memo: gift.memo });

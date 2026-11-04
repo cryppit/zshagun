@@ -62,7 +62,7 @@ if (live) {
     log(`balance check failed: ${e.message}`);
   }
 }
-app.server.listen(port, '127.0.0.1', () => log(`shagun on :${port}, ${live ? 'LIVE' : 'dry run'}`));
+app.server.listen(port, '127.0.0.1', () => log(`zshagun on :${port}, ${live ? 'LIVE' : 'dry run'}`));
 
 const ctx = { wallet, ledger, limits, now: Date.now, log, confirmations: 1, expireMs: 24 * 3600 * 1000 };
 async function loop() {

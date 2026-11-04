@@ -70,21 +70,36 @@ export function readInvoice(text) {
   }
 }
 
+// Balances sit in BTC, USD and EUR sub-accounts. Product details show each one in rupees.
+export function readBalances(text) {
+  return text.split(/- payment_method: /).slice(1).map((block) => ({
+    method: block.split('\n')[0].trim(),
+    currency: block.match(/balance_currency: "?(\w+)/)?.[1] ?? null,
+    rupees: Number((block.match(/equivalent_in_product_currency:\s*\n\s*amount: "?([\d.,]+)/)?.[1] ?? '0').replaceAll(',', '')),
+  })).filter((b) => b.method === 'balance');
+}
+
 const BAD_STATES = ['blocked', 'denied', 'payment_error'];
 
 export function createBitrefill({
   client, log = () => {}, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), now = Date.now,
-  pollMs = 3000, timeoutMs = 120000, packageField = 'package_value', balanceCurrency = null,
+  pollMs = 4000, timeoutMs = 120000, packageField = 'package_value', balanceCurrency = null,
 }) {
+  let fund = balanceCurrency;
   return {
+    // A rupee figure, from the sub-account with the most in it. Purchases are then paid from that one.
     async balance() {
-      return client.call('get-balances', {});
+      const text = await client.call('get-product-details', { product_id: 'airtel-india', currency: 'INR' });
+      const best = readBalances(text).sort((a, b) => b.rupees - a.rupees)[0];
+      if (!best) return 0;
+      if (best.rupees > 0 && !balanceCurrency) fund = best.currency;
+      return best.rupees;
     },
     async buy({ product, phone }) {
-      const item = { product_id: product.id, [packageField]: product.packageValue };
-      if (phone) item.refill_input = phone;
+      const item = { product_id: product.slug ?? product.id, [packageField]: product.packageValue };
+      if (phone) item.refill_input = phone.replace(/^\+/, ''); // international format, no plus sign
       const args = { cart_items: [item], payment_method: 'balance' };
-      if (balanceCurrency) args.balance_currency = balanceCurrency;
+      if (fund) args.balance_currency = fund;
       const reply = JSON.parse(await client.call('buy-products', args));
       log(`bitrefill invoice ${reply.invoice_id} created for ${product.id}`);
       return reply.invoice_id;

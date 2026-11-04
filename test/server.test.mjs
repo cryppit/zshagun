@@ -8,9 +8,9 @@ import { createApp } from '../src/server.mjs';
 import { claimToken, giftId, newAgentKey, newSecret, sealPhone } from '../web/gift.js';
 
 const catalog = [
-  { id: 'airtel', name: 'Airtel', kind: 'recharge', rupees: 10, packageValue: '10', needsPhone: true },
-  { id: 'card', name: 'Card', kind: 'card', rupees: 10, packageValue: '10', needsPhone: false },
-  { id: 'big', name: 'Big', kind: 'card', rupees: 100, packageValue: '100', needsPhone: false },
+  { id: 'airtel', name: 'Airtel', label: '₹10 recharge', kind: 'recharge', rupees: 10.65, packageValue: '10', needsPhone: true },
+  { id: 'card', name: 'Card', label: '₹10 gift card', kind: 'card', rupees: 10.65, packageValue: '10', needsPhone: false },
+  { id: 'big', name: 'Big', label: '₹100 gift card', kind: 'card', rupees: 104.38, packageValue: '100', needsPhone: false },
 ];
 const limits = { perGift: 101, perDay: 300, floor: 50 };
 const key = await newAgentKey();
@@ -32,7 +32,7 @@ async function start(over = {}) {
   const token = await claimToken(secret);
   const id = await giftId(secret);
   const ledger = over.ledger ?? createLedger(':memory:');
-  ledger.addGift({ id, txid: `t${id}`, output: 0, zat: 1000000, tier: 10, refundTo: over.refundTo ?? null, blob: 'blob', height: 5, now: 0 });
+  ledger.addGift({ id, txid: `t${id}`, output: 0, zat: 1100000, tier: 11, refundTo: over.refundTo ?? null, blob: 'blob', height: 5, now: 0 });
   ledger.setState(id, 'confirmed');
   const lines = [];
   const sent = [];
@@ -66,7 +66,9 @@ test('unknown_gift_404', async (t) => {
 test('gift_shows_tier_message_and_affordable_choices', async (t) => {
   const s = await start(); t.after(s.stop);
   const g = await (await fetch(`${s.base}/gift/${s.id}`)).json();
-  assert.equal(g.tier, 10);
+  assert.equal(g.tier, 11);
+  assert.equal(g.choices[0].label, '₹10 recharge');
+  assert.equal(g.choices[0].rupees, undefined);
   assert.equal(g.state, 'open');
   assert.equal(g.blob, 'blob');
   assert.deepEqual(g.choices.map((c) => c.id), ['airtel', 'card']);
@@ -186,12 +188,20 @@ test('giver_gets_an_opened_memo', async (t) => {
   assert.equal(s.ledger.get(s.id).opened_txid, 'z'.repeat(64));
 });
 
+test('opened_memo_sends_whole_zatoshis', async (t) => {
+  const s = await start({ refundTo: 'utest1giver' }); t.after(s.stop);
+  await s.claim();
+  await s.app.settled();
+  assert.ok(Number.isInteger(s.sent[0].zat), String(s.sent[0].zat));
+  assert.equal(s.sent[0].zat, 25000);
+});
+
 test('reload_after_crash_shows_result', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'shg-'));
   const path = join(dir, 'l.sqlite');
   const ledger = createLedger(path);
   const s = await start({ ledger });
-  s.ledger.claimOnce(s.id, { productId: 'card', phone: null, rupees: 10, now: 1 });
+  s.ledger.claimOnce(s.id, { productId: 'card', phone: null, rupees: 10.65, now: 1 });
   s.ledger.setState(s.id, 'buying', { invoice_id: 'inv9' });
   await s.app.recover();
   await s.app.settled();
@@ -202,7 +212,7 @@ test('reload_after_crash_shows_result', async () => {
 
 test('crash_before_the_invoice_is_needs_human_not_a_retry', async (t) => {
   const s = await start(); t.after(s.stop);
-  s.ledger.claimOnce(s.id, { productId: 'card', phone: null, rupees: 10, now: 1 });
+  s.ledger.claimOnce(s.id, { productId: 'card', phone: null, rupees: 10.65, now: 1 });
   await s.app.recover();
   await s.app.settled();
   assert.equal(s.ledger.get(s.id).state, 'needs_human');

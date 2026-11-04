@@ -24,9 +24,49 @@ test('buy_uses_catalog_package_value', async () => {
   const b = createBitrefill(opts(client));
   assert.equal(await b.buy({ product, phone: '+919999999999' }), 'inv1');
   assert.deepEqual(client.calls[0].args, {
-    cart_items: [{ product_id: 'airtel-india', package_value: '10', refill_input: '+919999999999' }],
+    cart_items: [{ product_id: 'airtel-india', package_value: '10', refill_input: '919999999999' }],
     payment_method: 'balance',
   });
+});
+
+const details = (btc, usd) => `id: airtel-india
+account_balances:
+  product_currency: INR
+  balances[4]:
+    - payment_method: balance
+      balance_currency: BTC
+      amount: "0.00000000"
+      equivalent_in_product_currency:
+        amount: "${btc}"
+        amount_base: 0
+    - payment_method: balance
+      balance_currency: USD
+      amount: "1.00"
+      equivalent_in_product_currency:
+        amount: "${usd}"
+    - payment_method: cashback
+      balance_currency: BTC
+      amount: "1.00000000"
+      equivalent_in_product_currency:
+        amount: "99999.00"`;
+
+test('balance_is_rupees_from_the_fullest_sub_account', async () => {
+  const client = fakeClient({ 'get-product-details': details('0.00', '2,500.50') });
+  assert.equal(await createBitrefill(opts(client)).balance(), 2500.5);
+  assert.deepEqual(client.calls[0].args, { product_id: 'airtel-india', currency: 'INR' });
+});
+
+test('buy_pays_from_the_sub_account_that_has_money', async () => {
+  const client = fakeClient({ 'get-product-details': details('0.00', '2500.00'), 'buy-products': '{"invoice_id":"inv1"}' });
+  const b = createBitrefill(opts(client));
+  await b.balance();
+  await b.buy({ product, phone: null });
+  assert.equal(client.calls[1].args.balance_currency, 'USD');
+});
+
+test('no_balance_section_reads_as_zero', async () => {
+  const client = fakeClient({ 'get-product-details': 'id: airtel-india' });
+  assert.equal(await createBitrefill(opts(client)).balance(), 0);
 });
 
 test('gift_card_has_no_phone', async () => {
@@ -137,4 +177,10 @@ test('service_error_names_bitrefill', async () => {
 test('http_failure_names_bitrefill_without_the_token', async () => {
   const c = createMcpClient({ url: 'u', token: 'TOPSECRET', fetch: async () => reply('Unauthorized', 'text/plain', 401) });
   await assert.rejects(c.call('x', {}), (e) => /Bitrefill.*401/.test(e.message) && !e.message.includes('TOPSECRET'));
+});
+
+test('catalog_id_can_differ_from_the_bitrefill_slug', async () => {
+  const client = fakeClient({ 'buy-products': '{"invoice_id":"inv1"}' });
+  await createBitrefill(opts(client)).buy({ product: { id: 'vi-20', slug: 'vi-india', packageValue: '20' }, phone: null });
+  assert.equal(client.calls[0].args.cart_items[0].product_id, 'vi-india');
 });

@@ -10,23 +10,23 @@ const json = (status, body) => new Response(JSON.stringify(body), { status, head
 
 async function aGift(over = {}) {
   const secret = newSecret();
-  const gift = { tier: 10, state: 'open', blob: await encryptMessage(secret, 'Happy <b>Diwali</b>'), choices: [], key: {}, ...over };
+  const gift = { tier: 11, state: 'open', blob: await encryptMessage(secret, 'Happy <b>Diwali</b>'), choices: [], key: {}, ...over };
   return { secret, gift };
 }
 const api = (handler) => ({ base: 'https://agent.test', fetch: async (url, init) => handler(url, init) });
 
 test('give_makes_link_and_memo_that_parse', async () => {
-  const g = await makeGift({ tier: 50, message: 'Shubh Deepavali', refundTo: UA, agentAddress: UA, pageUrl: PAGE });
+  const g = await makeGift({ tier: 51, message: 'Shubh Deepavali', refundTo: UA, agentAddress: UA, pageUrl: PAGE });
   const secret = secretFromHash(new URL(g.link).hash);
   const memo = parseMemo(g.memo);
-  assert.equal(memo.tier, 50);
+  assert.equal(memo.tier, 51);
   assert.equal(memo.id, await giftId(secret));
-  assert.equal(g.zat, 5000000);
+  assert.equal(g.zat, 5100000);
   assert.match(g.uri, /^zcash:utest1/);
 });
 
 test('secret_only_in_fragment', async () => {
-  const g = await makeGift({ tier: 10, message: 'hi', refundTo: null, agentAddress: UA, pageUrl: PAGE });
+  const g = await makeGift({ tier: 11, message: 'hi', refundTo: null, agentAddress: UA, pageUrl: PAGE });
   const u = new URL(g.link);
   const secret = u.hash.slice(1);
   assert.equal(u.search, '');
@@ -36,7 +36,7 @@ test('secret_only_in_fragment', async () => {
 });
 
 test('bad_refund_address_is_refused_at_giving', async () => {
-  await assert.rejects(makeGift({ tier: 10, message: '', refundTo: 'utest1nope', agentAddress: UA, pageUrl: PAGE }), /refund address/);
+  await assert.rejects(makeGift({ tier: 11, message: '', refundTo: 'utest1nope', agentAddress: UA, pageUrl: PAGE }), /refund address/);
 });
 
 test('mangled_links_read_as_null', () => {
@@ -163,7 +163,7 @@ test('indian_phone', () => {
 });
 
 test('every_screen_renders_without_gaps', () => {
-  const data = { screen: '', tier: 10, message: '', choices: [{ id: 'a', name: 'A', kind: 'card', rupees: 10, needsPhone: false }], product: { name: 'A', kind: 'card', rupees: 10 }, code: 'C', zat: 1000000, link: PAGE, uri: 'zcash:x', qr: '' };
+  const data = { screen: '', tier: 11, message: '', choices: [{ id: 'a', name: 'A', kind: 'card', rupees: 10, needsPhone: false }], product: { name: 'A', kind: 'card', rupees: 10 }, code: 'C', zat: 1000000, link: PAGE, uri: 'zcash:x', qr: '' };
   for (const name of ['give', 'pay', 'share', 'on_its_way', 'open', 'choosing', 'buying', 'done_recharge', 'done_code', 'already_opened', 'expired', 'refused', 'needs_human', 'limit_reached', 'service_down', 'bad_link']) {
     const html = screen({ ...data, screen: name });
     assert.ok(html.length > 40, name);
@@ -172,7 +172,7 @@ test('every_screen_renders_without_gaps', () => {
 });
 
 test('recipient_screens_have_no_crypto_words', () => {
-  const data = { tier: 10, message: 'hi', choices: [], product: { name: 'A', kind: 'card', rupees: 10 }, code: 'C' };
+  const data = { tier: 11, message: 'hi', choices: [], product: { name: 'A', kind: 'card', rupees: 10 }, code: 'C' };
   for (const name of ['on_its_way', 'open', 'choosing', 'buying', 'done_recharge', 'done_code', 'already_opened', 'needs_human', 'service_down']) {
     assert.doesNotMatch(screen({ ...data, screen: name }), /crypto|wallet|zcash|zec\b|blockchain|shielded|token/i, name);
   }

@@ -11,15 +11,15 @@ test('round_trip', async () => {
   const s = newSecret();
   const id = await giftId(s);
   const blob = await encryptMessage(s, 'Happy Diwali, Maa');
-  const gift = parseMemo(buildMemo({ id, tier: 50, refundTo: UA, blob }));
-  assert.deepEqual(gift, { id, tier: 50, refundTo: UA, blob });
+  const gift = parseMemo(buildMemo({ id, tier: 51, refundTo: UA, blob }));
+  assert.deepEqual(gift, { id, tier: 51, refundTo: UA, blob });
   assert.equal(await decryptMessage(s, gift.blob), 'Happy Diwali, Maa');
 });
 
 test('no_refund_address_round_trips_as_null', async () => {
   const s = newSecret();
   const id = await giftId(s);
-  const gift = parseMemo(buildMemo({ id, tier: 10, refundTo: null, blob: await encryptMessage(s, '') }));
+  const gift = parseMemo(buildMemo({ id, tier: 11, refundTo: null, blob: await encryptMessage(s, '') }));
   assert.equal(gift.refundTo, null);
 });
 
@@ -32,23 +32,23 @@ test('under_512_bytes_with_a_full_UA_and_a_120_char_message', async () => {
 test('memo_over_512_bytes_throws', async () => {
   const s = newSecret();
   const blob = await encryptMessage(s, 'दीपावली'.repeat(20));
-  await assert.rejects(async () => buildMemo({ id: await giftId(s), tier: 10, refundTo: UA, blob }), /too long/);
+  await assert.rejects(async () => buildMemo({ id: await giftId(s), tier: 11, refundTo: UA, blob }), /too long/);
 });
 
 test('junk_is_null', () => {
   const id = 'A'.repeat(43);
   for (const m of [
     '', 'practice', 'CHK1 test order, a long memo to confirm text round trips',
-    `SHG2|${id}|10|-|abcd`, `SHG1|short|10|-|abcd`, `SHG1|${id}|11|-|abcd`,
-    `SHG1|${id}|10|-`, `SHG1|${id}|10|-|abcd|extra`, `SHG1|${id}|10|-|not base64!`,
+    `SHG2|${id}|11|-|abcd`, `SHG1|short|11|-|abcd`, `SHG1|${id}|10|-|abcd`,
+    `SHG1|${id}|11|-`, `SHG1|${id}|11|-|abcd|extra`, `SHG1|${id}|11|-|not base64!`,
   ]) assert.equal(parseMemo(m), null, m);
 });
 
 test('bad_refund_address_is_null', () => {
   const id = 'A'.repeat(43);
   const flipped = UA.slice(0, -1) + (UA.endsWith('c') ? 'q' : 'c');
-  assert.equal(parseMemo(`SHG1|${id}|10|${flipped}|abcd`), null);
-  assert.equal(parseMemo(`SHG1|${id}|10|u1abc|abcd`), null);
+  assert.equal(parseMemo(`SHG1|${id}|11|${flipped}|abcd`), null);
+  assert.equal(parseMemo(`SHG1|${id}|11|u1abc|abcd`), null);
   assert.equal(isRefundAddress(UA), true);
   assert.equal(isRefundAddress(flipped), false);
 });
@@ -77,7 +77,7 @@ test('id_is_the_hash_of_the_claim_token', async () => {
 });
 
 test('uri_memo_is_base64url', () => {
-  const memo = 'SHG1|?>~|10|-|ab';
+  const memo = 'SHG1|?>~|11|-|ab';
   const uri = paymentUri({ address: UA, zat: 1000000, memo });
   const u = new URL(uri);
   assert.equal(u.protocol, 'zcash:');
@@ -88,7 +88,7 @@ test('uri_memo_is_base64url', () => {
 });
 
 test('tier_converts_at_the_demo_rate', () => {
-  assert.equal(tierZat(10), 1000000);
+  assert.equal(tierZat(11), 1100000);
   assert.equal(tierZat(101), 10100000);
 });
 
@@ -100,4 +100,9 @@ test('sealed_phone_opens_only_with_the_agent_key', async () => {
   assert.ok(!sealed.includes('9876543210'));
   assert.equal(await openPhone(agent.privateJwk, sealed), '+919876543210');
   await assert.rejects(openPhone(other.privateJwk, sealed));
+});
+
+test('tiers_end_in_one_as_shagun_does', async () => {
+  const { TIERS } = await import('../web/gift.js');
+  assert.deepEqual(TIERS, [11, 51, 101]);
 });

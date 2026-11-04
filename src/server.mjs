@@ -59,7 +59,7 @@ export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey
   async function tellGiver(id) {
     const gift = ledger.get(id);
     if (!gift.refund_to) return;
-    const rest = gift.zat - gift.rupees * ZAT_PER_RUPEE - REFUND_FEE_ZAT;
+    const rest = Math.round(gift.zat - gift.rupees * ZAT_PER_RUPEE - REFUND_FEE_ZAT);
     try {
       const txid = await wallet.send({
         address: gift.refund_to, zat: Math.max(rest, REFUND_FEE_ZAT), memo: 'Your Shagun was opened. Anything left over is in this payment.',
@@ -147,7 +147,7 @@ export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey
     if (!gift) return send(404, { error: 'unknown_gift' });
     const product = catalog.find((p) => p.id === gift.product_id);
     const state = gift.state === 'delivered' ? 'delivered' : PUBLIC_STATE[gift.state];
-    const out = { state, product: product ? { name: product.name, kind: product.kind, rupees: product.rupees } : null };
+    const out = { state, product: product ? { name: product.name, label: product.label, kind: product.kind } : null };
     return send(200, gift.code ? { ...out, ...JSON.parse(gift.code) } : out);
   }
 
@@ -161,7 +161,7 @@ export function createApp({ ledger, bitrefill, wallet, catalog, limits, agentKey
     const gift = ledger.get(id);
     if (!gift) return send(404, { error: 'unknown_gift' });
     const choices = catalog.filter((p) => p.rupees <= gift.tier)
-      .map(({ id: pid, name, kind, rupees, needsPhone }) => ({ id: pid, name, kind, rupees, needsPhone }));
+      .map(({ id: pid, name, label, kind, needsPhone }) => ({ id: pid, name, label, kind, needsPhone }));
     return send(200, { tier: gift.tier, state: PUBLIC_STATE[gift.state], blob: gift.blob, choices, key: agentKey.publicJwk });
   }
 

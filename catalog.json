@@ -1,6 +1,75 @@
 {
+  "checked": "2026-11-04, from get-product-details in INR",
   "products": [
-    { "id": "dry-recharge", "name": "Phone recharge (dry run)", "kind": "recharge", "rupees": 10, "packageValue": "10", "needsPhone": true },
-    { "id": "dry-card", "name": "Gift card (dry run)", "kind": "card", "rupees": 10, "packageValue": "10", "needsPhone": false }
+    {
+      "id": "airtel-10",
+      "slug": "airtel-india",
+      "name": "Airtel",
+      "label": "₹10 recharge",
+      "kind": "recharge",
+      "rupees": 10.65,
+      "packageValue": "10",
+      "needsPhone": true
+    },
+    {
+      "id": "vi-10",
+      "slug": "vi-india",
+      "name": "Vi",
+      "label": "₹10 recharge",
+      "kind": "recharge",
+      "rupees": 10.65,
+      "packageValue": "10",
+      "needsPhone": true
+    },
+    {
+      "id": "vi-20",
+      "slug": "vi-india",
+      "name": "Vi",
+      "label": "₹20 recharge",
+      "kind": "recharge",
+      "rupees": 21.3,
+      "packageValue": "20",
+      "needsPhone": true
+    },
+    {
+      "id": "jio-2gb",
+      "slug": "reliance-jio-india-bundles",
+      "name": "Jio",
+      "label": "2GB data for 2 days",
+      "kind": "recharge",
+      "rupees": 29.82,
+      "packageValue": "2GB – 2 Day Data Pack",
+      "needsPhone": true
+    },
+    {
+      "id": "vi-50",
+      "slug": "vi-india",
+      "name": "Vi",
+      "label": "₹50 recharge",
+      "kind": "recharge",
+      "rupees": 52.19,
+      "packageValue": "50",
+      "needsPhone": true
+    },
+    {
+      "id": "amazon-fresh-50",
+      "slug": "amazon-fresh-india",
+      "name": "Amazon Fresh",
+      "label": "₹50 gift card",
+      "kind": "card",
+      "rupees": 54.32,
+      "packageValue": "50",
+      "needsPhone": false
+    },
+    {
+      "id": "jio-6gb",
+      "slug": "reliance-jio-india-bundles",
+      "name": "Jio",
+      "label": "6GB data for 7 days",
+      "kind": "recharge",
+      "rupees": 71.36,
+      "packageValue": "6GB – 7 Day Data Pack",
+      "needsPhone": true
+    }
   ]
 }

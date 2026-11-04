@@ -6,8 +6,8 @@ import { buildMemo } from '../web/gift.js';
 
 const UA = 'utest14j43elrxtzx6umn9yzu3pp3tphzgl98gc703xzcs6t8sefhgwhaez9jv2szut7j00v0rfl03cjw0uv9dmcq2zqp3cufu7c2n254dffjfa8qcuyl7usvnktap49cyq343zryet5q5g3dz9rfwyz9a6nuxvwnrnjkzl673sjf2pglk9g5a5nszk4pj3z6z0uez37pfekrpda65sljvdfc';
 const ID = 'A'.repeat(43);
-const memo = (o = {}) => buildMemo({ id: ID, tier: 10, refundTo: UA, blob: 'abcd', ...o });
-const row = (o = {}) => ({ txid: 't1', output: 0, zat: 1000000, memo: memo(), height: 100, ...o });
+const memo = (o = {}) => buildMemo({ id: ID, tier: 11, refundTo: UA, blob: 'abcd', ...o });
+const row = (o = {}) => ({ txid: 't1', output: 0, zat: 1100000, memo: memo(), height: 100, ...o });
 
 function setup(rows, { tip = 100, sendFails = false } = {}) {
   const sent = [];

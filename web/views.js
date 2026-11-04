@@ -1,4 +1,6 @@
 // Every screen, as a string of HTML. Anything a person typed goes through esc().
+import { TIERS } from './gift.js';
+
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 const DIYA = `<svg class="diya" viewBox="0 0 120 120" aria-hidden="true">
@@ -15,13 +17,13 @@ const rupees = (n) => `₹${esc(n)}`;
 const taz = (zat) => (zat / 1e8).toFixed(2);
 
 const VIEWS = {
-  give: ({ tier = 50, error }) => card(`
+  give: ({ tier = 51, error }) => card(`
     <p class="brand">शगुन · Shagun</p>
     <h1>Send a private gift</h1>
     <p class="muted">They tap a link and pick something they want. They don't need any app.</p>
     <form id="give">
       <fieldset class="tiers"><legend>How much?</legend>
-        ${[10, 50, 101].map((t) => `<label><input type="radio" name="tier" value="${t}" ${t === tier ? 'checked' : ''}><span>₹${t}</span></label>`).join('')}
+        ${TIERS.map((t) => `<label><input type="radio" name="tier" value="${t}" ${t === tier ? 'checked' : ''}><span>₹${t}</span></label>`).join('')}
       </fieldset>
       <label class="field">Your message
         <textarea name="message" rows="3" maxlength="120" placeholder="Happy Diwali! Get something nice."></textarea>
@@ -68,7 +70,7 @@ const VIEWS = {
     <form id="choose">
       <div class="choices">
         ${choices.map((c, i) => `<label class="choice"><input type="radio" name="product" value="${esc(c.id)}" data-phone="${c.needsPhone ? 1 : 0}" ${i === 0 ? 'checked' : ''}>
-          <span><b>${esc(c.name)}</b><small>${rupees(c.rupees)} ${c.kind === 'recharge' ? 'phone recharge' : 'gift card'}</small></span></label>`).join('')}
+          <span><b>${esc(c.name)}</b><small>${esc(c.label)}</small></span></label>`).join('')}
       </div>
       <label class="field" id="phone-field">Phone number to recharge
         <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="98765 43210">
@@ -80,11 +82,11 @@ const VIEWS = {
 
   buying: () => notice('Getting it for you', 'This usually takes a few seconds. Please keep this page open.', '<p class="pulse" aria-hidden="true">· · ·</p>'),
 
-  done_recharge: ({ product }) => notice('Done!', `Your ${esc(product?.name)} recharge of ${rupees(product?.rupees)} is on its way to your phone. Your carrier will send you a message.`),
+  done_recharge: ({ product }) => notice('Done!', `Your ${esc(product?.name)} ${esc(product?.label)} is on its way to your phone. Your carrier will send you a message.`),
 
   done_code: ({ product, code, pin, link }) => card(`
     ${DIYA}<h1>Here's your gift</h1>
-    <p>${esc(product?.name)} · ${rupees(product?.rupees)}</p>
+    <p>${esc(product?.name)} · ${esc(product?.label)}</p>
     ${code ? `<p class="code">${esc(code)}</p><button class="ghost" data-copy="${esc(code)}">Copy code</button>` : ''}
     ${pin ? `<p>PIN: <b>${esc(pin)}</b></p>` : ''}
     ${link ? `<p><a href="${esc(link)}" target="_blank" rel="noreferrer noopener">Open your gift</a></p>` : ''}

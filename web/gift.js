@@ -8,7 +8,7 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 const subtle = globalThis.crypto.subtle;
 
-export const TIERS = [10, 50, 101];
+export const TIERS = [11, 51, 101]; // shagun traditionally ends in 1
 export const MAX_MEMO_BYTES = 512;
 const ZAT_PER_RUPEE = 100000; // demo rate: 1 TAZ = ₹1,000
 

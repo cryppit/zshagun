@@ -1,4 +1,4 @@
-# Feedback for Bitrefill
+# Feedback
 
 From building zshagun at Free Society Hack, 4 November 2026. Everything here happened today, on real purchases.
 
@@ -6,7 +6,7 @@ From building zshagun at Free Society Hack, 4 November 2026. Everything here hap
 
 <!-- The founder writes this part. -->
 
-## What broke, in the order it hit us
+## Bitrefill: what broke, in the order it hit us
 
 ### 1. The purchase reply is wrapped, and one docs page says it isn't
 
@@ -55,9 +55,25 @@ Airtel ₹10 costs ₹10.65 and put ₹7.47 of talktime on the SIM. Neither the 
 - Asking for `reliance-jio-india` returns `reliance-jio-india-bundles` as the id.
 - No balance in the product's currency from `get-balances`. We read rupees from `account_balances` inside `get-product-details`, which we found by accident.
 
-## What was good
+## Bitrefill: what was good
 
 - Delivery was fast: 18 seconds for the recharge, about 11 for the card.
 - The MCP server is stateless JSON-RPC, so plain `fetch` was enough, with no SDK.
 - The advice in the event pack was right: paid isn't delivered, copy package values, prices aren't in `buy-products`.
 - `PAYMENT_UNCERTAIN` and the warning never to retry shaped our design, and it's why our crash cost nothing extra: one purchase, one charge.
+
+## Zcash
+
+### SDK or wallet tool: zcash-devtool at 0b3436b
+
+- `wallet list-tx --mode csv` writes memos unquoted, so a memo with a comma adds a column (11 headers, 12 cells), and rows have no txid. We parsed the text output instead.
+- The text output of `list-tx` was reliable, and `send` took about 13 seconds.
+
+### Wallet
+
+- A normal person can't give today. We found no ready wallet that pays a ZIP 321 link on NU7 testnet, so our giver is a developer tool. This is the biggest gap for anything aimed at first-time users.
+
+### Node or indexer
+
+- testnet.zec.rocks is native gRPC only, so a browser can't talk to it without a proxy. That's why the agent runs server-side.
+- One brief DNS failure reaching the light-wallet server during the day. The next pass recovered by itself.

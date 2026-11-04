@@ -17,6 +17,8 @@ On 4 November, real shielded gifts on NU7 testnet triggered real purchases, paid
 |---|---|---|
 | Airtel ₹10 recharge | `6f310da4-db18-4f03-9841-ae842d95f792` | Delivered in 18 seconds. ₹7.47 of talktime landed on a real SIM |
 | Flipkart ₹50 gift card | `1bd45cb0-dabe-4558-a8b1-116906d67f85` | Delivered in about 11 seconds, then redeemed in the Flipkart app |
+| Jio 1GB data pack | `1165078e-29a8-4fb4-adaf-19758c520514` | Claimed by another hacker on his own phone, delivered in about 22 seconds |
+| Airtel ₹10 recharge | `836ff5d4-8bd1-49f6-8e63-880820252647` | The purchase in the demo video, delivered in about 22 seconds |
 
 The first purchase crashed our agent after Bitrefill had taken payment. It didn't buy twice, because a claim is recorded before buying and is never retried. `FEEDBACK.md` has the story.
 
@@ -141,7 +143,7 @@ The agent serves both.
 - A link works like cash. Anyone who gets it can claim the gift.
 - A recharge names a phone number, and that's usually a real person. A gift card keeps it away from Bitrefill.
 - Carriers take fees: a ₹10 Airtel recharge added ₹7.47 of talktime.
-- Only Airtel and Flipkart have been tested with real purchases. Other brands may return different fields, so the page shows every field Bitrefill sends.
+- Only Airtel, Jio and Flipkart have been tested with real purchases. Other brands may return different fields, so the page shows every field Bitrefill sends.
 - A quick-tunnel URL changes on restart, which breaks claims until `web/config.js` is updated.
 - A mainnet launch needs a check of the rules on reselling gift cards in India.
 - One confirmation is enough to fund a gift here. Mainnet should wait for more.

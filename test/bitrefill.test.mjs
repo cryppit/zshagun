@@ -150,17 +150,17 @@ test('paid_is_not_delivered', async () => {
 test('delivered_returns_code', async () => {
   const text = 'id: inv1\ninvoice_status: complete\norders[1]:\n  - id: o1\n    status: delivered\n    redemption_info:\n      code: ABCD-1234\n      pin: "77"';
   const client = fakeClient({ 'get-invoice-by-id': text });
-  assert.deepEqual(await createBitrefill(opts(client)).waitDelivered('inv1'), { status: 'delivered', code: 'ABCD-1234', pin: '77', link: null });
+  assert.deepEqual(await createBitrefill(opts(client)).waitDelivered('inv1'), { status: 'delivered', code: 'ABCD-1234', pin: '77', link: null, accessLink: null });
 });
 
 test('reads_a_json_invoice_too', () => {
   const r = readInvoice('{"status":"complete","orders":[{"status":"delivered","redemption_info":{"link":"https://x.test/r"}}]}');
-  assert.deepEqual(r, { state: 'complete', code: null, pin: null, link: 'https://x.test/r', failed: false });
+  assert.deepEqual(r, { state: 'complete', code: null, pin: null, link: 'https://x.test/r', accessLink: null, failed: false });
 });
 
 test('recharge_has_no_code', async () => {
   const client = fakeClient({ 'get-invoice-by-id': 'invoice_status: complete' });
-  assert.deepEqual(await createBitrefill(opts(client)).waitDelivered('inv1'), { status: 'delivered', code: null, pin: null, link: null });
+  assert.deepEqual(await createBitrefill(opts(client)).waitDelivered('inv1'), { status: 'delivered', code: null, pin: null, link: null, accessLink: null });
 });
 
 test('timeout_is_needs_human', async () => {

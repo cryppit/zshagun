@@ -1,5 +1,5 @@
 // Every screen, as a string of HTML. Anything a person typed goes through esc().
-import { TIERS } from './gift.js';
+import { COVERS, TIERS } from './gift.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -7,7 +7,7 @@ const rupees = (n) => `₹${esc(n)}`;
 const taz = (zat) => (zat / 1e8).toFixed(8).replace(/0+$/, '').replace(/\.$/, '');
 
 // The gold coin that seals a lifafa. A shagun always carries the extra one.
-export const coin = (label = 'z', cls = '') => `<svg class="coin ${cls}" viewBox="0 0 200 200" aria-hidden="true">
+export const coin = (label = 'श', cls = '') => `<svg class="coin ${cls}" viewBox="0 0 200 200" aria-hidden="true">
   <defs>
     <radialGradient id="face" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="#fff3bf"/><stop offset=".42" stop-color="#f7c948"/><stop offset="1" stop-color="#b8770f"/></radialGradient>
     <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a3"/><stop offset=".5" stop-color="#c98a14"/><stop offset="1" stop-color="#8a5508"/></linearGradient>
@@ -36,7 +36,7 @@ const lifafa = (inner = '') => `<div class="lifafa">
 </div>`;
 
 const paper = (body, cls = '') => `${mark}<section class="paper ${cls}">${body}</section>`;
-const notice = (title, text, extra = '', c = 'z') => paper(`${coin(c, 'small-coin')}<h1>${title}</h1><p>${text}</p>${extra}`, 'center');
+const notice = (title, text, extra = '') => paper(`${coin(undefined, 'small-coin')}<h1>${title}</h1><p>${text}</p>${extra}`, 'center');
 
 const tile = (c, picked) => `<label class="tile"><input type="radio" name="product" value="${esc(c.id)}" data-phone="${c.needsPhone ? 1 : 0}" ${c.id === picked ? 'checked' : ''}>
   <span class="tile-in"><i class="brand b-${esc(String(c.name).toLowerCase().replace(/[^a-z]/g, ''))}" aria-hidden="true">${esc(String(c.name).slice(0, 1))}</i>
@@ -45,7 +45,7 @@ const tile = (c, picked) => `<label class="tile"><input type="radio" name="produ
 const group = (title, list, picked) => (list.length ? `<h2>${title}</h2><div class="tiles">${list.map((c) => tile(c, picked)).join('')}</div>` : '');
 
 const VIEWS = {
-  give: ({ tier = 51, error }) => paper(`
+  give: ({ tier = 51, cover = 'diwali', note = '', from = '', refund = '', error }) => paper(`
     <p class="kicker">शगुन, sealed</p>
     <h1>A gift only they can open</h1>
     <p class="lede">They tap a link and choose what they want. They don't need an app, and nobody else can see it.</p>
@@ -53,19 +53,26 @@ const VIEWS = {
       <fieldset class="tiers"><legend>Pick the coin</legend>
         ${TIERS.map((t) => `<label><input type="radio" name="tier" value="${t}" ${t === tier ? 'checked' : ''}><span class="tier">${coin(`₹${t}`)}</span></label>`).join('')}
       </fieldset>
+      <fieldset class="covers"><legend>Pick the envelope</legend>
+        ${COVERS.map((c) => `<label><input type="radio" name="cover" value="${c}" ${c === cover ? 'checked' : ''}><span class="cover c-${c}"><i></i>${c[0].toUpperCase()}${c.slice(1)}</span></label>`).join('')}
+      </fieldset>
       <label class="field">Write your note
-        <textarea name="message" rows="3" maxlength="120" placeholder="Happy Diwali! Get something nice."></textarea>
+        <textarea name="message" rows="3" maxlength="100" placeholder="Happy Diwali! Get something nice.">${esc(note)}</textarea>
       </label>
-      <details><summary>If they never open it</summary>
+      <label class="field">Sign it (optional)
+        <input name="from" maxlength="24" autocomplete="off" placeholder="Maa" value="${esc(from)}">
+        <span class="fine hint">Your name and note are locked in this browser. Only the person you send it to can read them.</span>
+      </label>
+      <details${refund ? ' open' : ''}><summary>If they never open it</summary>
         <label class="field">Refund address (optional)
-          <input name="refund" autocomplete="off" spellcheck="false" placeholder="utest1…">
+          <input name="refund" autocomplete="off" spellcheck="false" placeholder="utest1…" value="${esc(refund)}">
         </label>
         <p class="fine">With this, an unopened gift comes back after 24 hours, and you get a private note when it's opened. Without it, an unopened gift can't come back.</p>
       </details>
       ${error ? `<p class="error" role="alert">${esc(error)}</p>` : ''}
       <button class="gold" type="submit">Seal it</button>
     </form>
-    <p class="fine">Your note is locked in this browser. Nothing is sent until you pay.</p>
+    <p class="fine">Nothing is sent until you pay.</p>
     ${powered}`),
 
   pay: ({ zat, uri, qr }) => paper(`
@@ -81,7 +88,7 @@ const VIEWS = {
     ${powered}`),
 
   share: ({ link }) => paper(`
-    ${coin('z', 'drop')}
+    ${coin(undefined, 'drop')}
     <h1>Sealed</h1>
     <p>Send this link to one person. Treat it like cash: anyone who has it can open the gift.</p>
     <p class="link">${esc(link)}</p>
@@ -90,14 +97,14 @@ const VIEWS = {
     <p class="fine">It can open a minute or two after your payment goes through.</p>
     ${powered}`, 'center'),
 
-  on_its_way: () => `<div class="scene">${mark}${coin('z', 'spin')}<h1 class="on-red">Your gift is on its way</h1><p class="on-red">It will open here by itself, usually within a couple of minutes. You can keep this page open.</p></div>`,
+  on_its_way: () => `<div class="scene">${mark}${coin(undefined, 'spin')}<h1 class="on-red">Your gift is on its way</h1><p class="on-red">It will open here by itself, usually within a couple of minutes. You can keep this page open.</p></div>`,
 
-  open: ({ tier, message }) => `<div class="stage">
+  open: ({ tier, message, from }) => `<div class="stage">
     ${mark}
-    ${lifafa(`<button class="seal" data-open="1" aria-label="Open your gift">${coin('z')}</button>
-      <div class="invite"><h1>A shagun for you</h1><p>Tap the coin to open</p></div>`)}
+    ${lifafa(`<button class="seal" data-open="1" aria-label="Open your gift">${coin()}</button>
+      <div class="invite"><h1>A shagun for you</h1>${from ? `<p class="from">From ${esc(from)}</p>` : ''}<p>Tap the coin to open</p></div>`)}
     <section class="letter" aria-label="Your gift">
-      <p class="kicker">Someone is thinking of you</p>
+      <p class="kicker">${from ? `From ${esc(from)}` : 'Someone is thinking of you'}</p>
       ${message ? `<blockquote>${esc(message)}</blockquote>` : ''}
       <p class="sum">${rupees(tier)}</p>
       <button class="gold" data-go="choosing">Choose your gift</button>
@@ -122,7 +129,7 @@ const VIEWS = {
     </form>`);
   },
 
-  buying: () => `<div class="scene">${mark}${coin('z', 'spin')}<h1 class="on-red">Getting it for you</h1><p class="on-red">This usually takes a few seconds. Please keep this page open.</p></div>`,
+  buying: () => `<div class="scene">${mark}${coin(undefined, 'spin')}<h1 class="on-red">Getting it for you</h1><p class="on-red">This usually takes a few seconds. Please keep this page open.</p></div>`,
 
   done_recharge: ({ product }) => `${mark}<section class="ticket">
     <p class="stamp">Done</p>

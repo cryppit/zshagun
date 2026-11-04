@@ -106,3 +106,27 @@ test('tiers_end_in_one_as_shagun_does', async () => {
   const { TIERS } = await import('../web/gift.js');
   assert.deepEqual(TIERS, [11, 51, 101]);
 });
+
+test('note_carries_sender_and_cover', async () => {
+  const { packNote, readNote } = await import('../web/gift.js');
+  assert.deepEqual(readNote(packNote({ from: 'Maa', message: 'Happy Diwali', cover: 'wedding' })), { from: 'Maa', message: 'Happy Diwali', cover: 'wedding' });
+});
+
+test('an_old_plain_note_still_reads', async () => {
+  const { readNote } = await import('../web/gift.js');
+  assert.deepEqual(readNote('Happy Diwali, Maa'), { from: '', message: 'Happy Diwali, Maa', cover: 'diwali' });
+  assert.deepEqual(readNote('{"not":"ours"}'), { from: '', message: '{"not":"ours"}', cover: 'diwali' });
+});
+
+test('an_unknown_cover_falls_back_to_diwali', async () => {
+  const { packNote, readNote } = await import('../web/gift.js');
+  assert.equal(readNote(packNote({ from: '', message: 'x', cover: '"><script>' })).cover, 'diwali');
+  assert.equal(readNote('{"f":"a","m":"b","c":"nope"}').cover, 'diwali');
+});
+
+test('longest_note_fits_with_a_full_refund_address', async () => {
+  const { packNote } = await import('../web/gift.js');
+  const s = newSecret();
+  const blob = await encryptMessage(s, packNote({ from: 'x'.repeat(24), message: 'y'.repeat(100), cover: 'birthday' }));
+  assert.ok(new TextEncoder().encode(buildMemo({ id: await giftId(s), tier: 101, refundTo: UA, blob })).length <= 512);
+});

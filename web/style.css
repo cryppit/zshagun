@@ -18,6 +18,10 @@
   --marigold: #f08a12;
 }
 
+:root { --glow: #d0202c; }
+:root[data-cover="wedding"] { --sindoor: #a3125e; --sindoor-deep: #6f0b43; --sindoor-dark: #45062a; --glow: #c21f78; }
+:root[data-cover="birthday"] { --sindoor: #0f6e74; --sindoor-deep: #0a4a50; --sindoor-dark: #06323a; --glow: #17919a; }
+
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; background: var(--sindoor-deep); }
 
@@ -27,7 +31,7 @@ body {
   display: flex;
   flex-direction: column;
   color: var(--ink);
-  background: url(buti.svg) 0 0 / 120px, radial-gradient(110% 70% at 50% 18%, #d0202c 0%, var(--sindoor) 42%, var(--sindoor-deep) 100%) fixed;
+  background: url(buti.svg) 0 0 / 120px, radial-gradient(110% 70% at 50% 18%, var(--glow) 0%, var(--sindoor) 42%, var(--sindoor-deep) 100%) fixed;
   font: 400 17px/1.5 Hind, system-ui, -apple-system, "Noto Sans Devanagari", sans-serif;
   overflow-x: hidden;
 }
@@ -93,6 +97,7 @@ button:disabled { opacity: .6; cursor: wait; }
 
 .coin { display: block; width: 100%; height: auto; filter: drop-shadow(0 6px 10px rgb(50 10 0 / 45%)); }
 .coin-text { font-size: 104px; fill: #7a4a0a; }
+.coin-text:not(.small) { font-size: 118px; }
 .coin-text.small { font-size: 54px; }
 .small-coin { width: 76px; margin: 0 auto 6px; }
 .drop { width: 112px; margin: 2px auto 4px; animation: drop .7s cubic-bezier(.3, 1.5, .5, 1) both; }
@@ -108,10 +113,22 @@ legend { padding: 0; margin-bottom: 8px; }
 .tiers input:checked + .tier { transform: translateY(-6px) scale(1.08); filter: none; }
 .tiers input:focus-visible + .tier { outline: 3px solid var(--sindoor-dark); }
 
+.covers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.covers legend { grid-column: 1 / -1; }
+.covers input { position: absolute; opacity: 0; }
+.cover { display: block; cursor: pointer; text-align: center; font-size: .84rem; font-weight: 600; color: var(--ink); }
+.cover i { display: block; height: 50px; margin-bottom: 3px; border-radius: 4px; border: 2px solid transparent; background: linear-gradient(to bottom right, transparent 49.4%, var(--env-d) 50%) right top / 50% 56% no-repeat, linear-gradient(to bottom left, transparent 49.4%, var(--env-d) 50%) left top / 50% 56% no-repeat, var(--env); transform: scaleY(-1); }
+.c-diwali { --env: #8d0c18; --env-d: #b5121f; }
+.c-wedding { --env: #6f0b43; --env-d: #a3125e; }
+.c-birthday { --env: #0a4a50; --env-d: #0f6e74; }
+.covers input:checked + .cover i { border-color: var(--gold-deep); box-shadow: 0 0 0 2px var(--gold); }
+.covers input:focus-visible + .cover i { outline: 3px solid var(--sindoor-dark); outline-offset: 2px; }
+.invite .from { font: 400 1.35rem/1.2 Rozha, Georgia, serif; color: var(--paper); margin: 2px 0 8px; }
+
 .field { display: block; margin: 14px 0; }
 .field[hidden] { display: none; }
 .hint { display: block; margin-top: 6px; font-weight: 400; }
-textarea, input[name=refund], input[type=tel] {
+textarea, input[name=refund], input[name=from], input[type=tel] {
   display: block; width: 100%; margin-top: 6px; padding: 12px; border-radius: 4px; font: 400 1.05rem/1.5 Hind, system-ui, sans-serif;
   color: var(--ink); background: rgb(255 255 255 / 65%); border: 1.5px solid rgb(201 138 20 / 70%);
 }
